@@ -24,6 +24,7 @@ import com.freedomotic.api.Protocol;
 import com.freedomotic.app.Freedomotic;
 import com.freedomotic.events.ProtocolRead;
 import com.freedomotic.exceptions.UnableToExecuteException;
+import com.freedomotic.helpers.HttpHelper;
 import com.freedomotic.reactions.Command;
 import java.io.*;
 import java.net.*;
@@ -44,10 +45,11 @@ import org.xml.sax.SAXException;
 public class WifiPower extends Protocol {
 
     private static final Logger LOG = Logger.getLogger(WifiPower.class.getName());
-    private static ArrayList<Board> boards = null;
-    Map<String, Board> devices = new HashMap<String, Board>();
-    private static int BOARD_NUMBER = 1;
-    private static int POLLING_TIME = 1000;
+    private int POLLING_TIME = configuration.getIntProperty("polling-time", 1000);
+    private int BOARD_NUMBER = configuration.getTuples().size();
+    private ArrayList<Board> boards = null;
+    private Map<String, Board> devices = new HashMap<String, Board>();
+    private HttpHelper httpHelper = new HttpHelper();
     private Socket socket = null;
     private DataOutputStream outputStream = null;
     private BufferedReader inputStream = null;
@@ -60,54 +62,11 @@ public class WifiPower extends Protocol {
      */
     public WifiPower() {
         super("WifiPower", "/wifipower/wifipower-manifest.xml");
-        setPollingWait(POLLING_TIME);
-    }
-
-    private void loadBoards() {
-        if (boards == null) {
-            boards = new ArrayList<Board>();
-        }
-        if (devices == null) {
-            devices = new HashMap<String, Board>();
-        }
-        setDescription("Reading status changes from"); //empty description
-        for (int i = 0; i < BOARD_NUMBER; i++) {
-            String ipToQuery;
-            String relayTag;
-            String autoConfiguration;
-            String objectClass;
-            String alias;
-            String monitorRelay;
-            String authentication;
-            String username;
-            String password;
-            int portToQuery;
-            int relayNumber;
-            int startingRelay;
-            ipToQuery = configuration.getTuples().getStringProperty(i, "ip-to-query", "192.168.1.201");
-            portToQuery = configuration.getTuples().getIntProperty(i, "port-to-query", 80);
-            alias = configuration.getTuples().getStringProperty(i, "alias", "default");
-            relayNumber = configuration.getTuples().getIntProperty(i, "relay-number", 4);
-            startingRelay = configuration.getTuples().getIntProperty(i, "starting-relay", 0);
-            authentication = configuration.getTuples().getStringProperty(i, "authentication", "false");
-            username = configuration.getTuples().getStringProperty(i, "username", "ftp");
-            password = configuration.getTuples().getStringProperty(i, "password", "2406");
-            relayTag = configuration.getTuples().getStringProperty(i, "relay-tag", "out");
-            autoConfiguration = configuration.getTuples().getStringProperty(i, "auto-configuration", "false");
-            monitorRelay = configuration.getTuples().getStringProperty(i, "monitor-relay", "true");
-            objectClass = configuration.getTuples().getStringProperty(i, "object.class", "Light");
-            Board board = new Board(ipToQuery, portToQuery, alias, relayNumber, startingRelay, relayTag, autoConfiguration, objectClass,
-                    monitorRelay, authentication, username, password);
-            boards.add(board);
-            // add board object and its alias as key for the hashmap
-            devices.put(alias, board);
-            setDescription(getDescription() + " " + ipToQuery + ":" + portToQuery + ";");
-        }
     }
 
     /**
      * Connection to boards
-     */
+    
     private boolean connect(String address, int port) {
 
         LOG.info("Trying to connect to WifiPower board on address " + address + ':' + port);
@@ -122,8 +81,9 @@ public class WifiPower extends Protocol {
             LOG.severe("Unable to connect to host " + address + " on port " + port);
             return false;
         }
-    }
+    }  **/
 
+  /**
     private void disconnect() {
         // close streams and socket
         try {
@@ -133,23 +93,16 @@ public class WifiPower extends Protocol {
         } catch (Exception ex) {
             //do nothing. Best effort
         }
-    }
+    }**/
 
-    /**
-     * Sensor side
-     */
     @Override
     public void onStart() {
-        super.onStart();
-        POLLING_TIME = configuration.getIntProperty("polling-time", 1000);
-        BOARD_NUMBER = configuration.getTuples().size();
         setPollingWait(POLLING_TIME);
         loadBoards();
     }
 
     @Override
     public void onStop() {
-        super.onStop();
         //release resources
         boards.clear();
         boards = null;
@@ -157,7 +110,7 @@ public class WifiPower extends Protocol {
         devices = null;
         setPollingWait(-1); //disable polling
         //display the default description
-        setDescription(configuration.getStringProperty("description", "WifiPower"));
+        setDescription(configuration.getStringProperty("description", "WifiPower stopped"));
     }
 
     @Override
@@ -167,64 +120,80 @@ public class WifiPower extends Protocol {
         for (String key : keySet) {
             Board board = devices.get(key);
             try {
-                evaluateDiffs(getXMLStatusFile(board), board);
+                evaluateDiffs(getXML(board), board);
             } catch (XPathExpressionException ex) {
-                Logger.getLogger(WifiPower.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
-        }
-        try {
-            Thread.sleep(POLLING_TIME);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(WifiPower.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private Document getXMLStatusFile(Board board) {
+    /**
+     * private Document getXMLStatusFile(Board board) { final Board b = board;
+     * //get the xml file from the socket connection DocumentBuilderFactory
+     * dbFactory = DocumentBuilderFactory.newInstance(); DocumentBuilder
+     * dBuilder = null; try { dBuilder = dbFactory.newDocumentBuilder(); } catch
+     * (ParserConfigurationException ex) { LOG.log(Level.SEVERE, null, ex); }
+     * Document doc = null; String statusFileURL = null; try { if
+     * (board.getAuthentication().equalsIgnoreCase("true")) {
+     * Authenticator.setDefault(new Authenticator() { protected
+     * PasswordAuthentication getPasswordAuthentication() { return new
+     * PasswordAuthentication(b.getUsername(), b.getPassword().toCharArray()); }
+     * }); statusFileURL = "http://" + b.getUsername() + ":" + b.getPassword() + "
+     *
+     * @" + b.getIpAddress() + ":" + Integer.toString(b.getPort()) +
+     * GET_STATUS_URL; } else { statusFileURL = "http://" + b.getIpAddress() +
+     * ":" + Integer.toString(b.getPort()) + GET_STATUS_URL; }
+     *
+     * LOG.info("WifiPower gets relay status from file " + statusFileURL); doc =
+     * dBuilder.parse(new URL(statusFileURL).openStream());
+     * doc.getDocumentElement().normalize(); } catch (ConnectException connEx) {
+     * disconnect(); this.stop(); this.setDescription("Connection timed out, no
+     * reply from the board at " + statusFileURL); } catch (SAXException ex) {
+     * disconnect(); this.stop(); LOG.severe(Freedomotic.getStackTraceInfo(ex));
+     * } catch (Exception ex) { disconnect(); this.stop();
+     * setDescription("Unable to connect to " + statusFileURL);
+     * LOG.severe(Freedomotic.getStackTraceInfo(ex)); } return doc;
+     *
+     * }
+     *
+     */
+    private Document getXML(Board board) {
         final Board b = board;
-        //get the xml file from the socket connection
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = null;
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = null;
+        Document doc = null;
+        String xmlContent = null;
+        String statusFileURL = "http://" + b.getIpAddress() + ":"
+                + Integer.toString(b.getPort()) + GET_STATUS_URL;
+        String statusFileURLAuth = statusFileURL = "http://" + b.getUsername() + ":" + b.getPassword() + "@" + b.getIpAddress() + ":"
+                + Integer.toString(b.getPort()) + GET_STATUS_URL;
         try {
-            dBuilder = dbFactory.newDocumentBuilder();
+            builder = factory.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(WifiPower.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Document doc = null;
-        String statusFileURL = null;
         try {
             if (board.getAuthentication().equalsIgnoreCase("true")) {
-                Authenticator.setDefault(new Authenticator() {
-
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(b.getUsername(), b.getPassword().toCharArray());
-                    }
-                });
-                statusFileURL = "http://" + b.getUsername() + ":" + b.getPassword() + "@" + b.getIpAddress() + ":"
-                        + Integer.toString(b.getPort()) + GET_STATUS_URL;
+                xmlContent = httpHelper.retrieveContent(statusFileURLAuth, b.getUsername(), b.getPassword());
+                LOG.info("WifiPower gets relay status from file " + statusFileURLAuth);
             } else {
-                statusFileURL = "http://" + b.getIpAddress() + ":"
-                        + Integer.toString(b.getPort()) + GET_STATUS_URL;
+                xmlContent = httpHelper.retrieveContent(statusFileURL);
+                LOG.info("WifiPower gets relay status from file " + statusFileURL);
             }
-
-            LOG.info("WifiPower gets relay status from file " + statusFileURL);
-            doc = dBuilder.parse(new URL(statusFileURL).openStream());
+            factory.setNamespaceAware(true);
+            doc = builder.parse(new ByteArrayInputStream(xmlContent.getBytes()));
             doc.getDocumentElement().normalize();
-        } catch (ConnectException connEx) {
-            disconnect();
-            this.stop();
-            this.setDescription("Connection timed out, no reply from the board at " + statusFileURL);
         } catch (SAXException ex) {
-            disconnect();
+            //disconnect();
             this.stop();
-            LOG.severe(Freedomotic.getStackTraceInfo(ex));
+            LOG.log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            disconnect();
+            //disconnect();
             this.stop();
-            setDescription("Unable to connect to " + statusFileURL);
-            LOG.severe(Freedomotic.getStackTraceInfo(ex));
+            //setDescription("Unable to connect to " + statusFileURL);
+            LOG.log(Level.SEVERE, null, ex);
         }
         return doc;
-
     }
 
     private void evaluateDiffs(Document doc, Board board) throws XPathExpressionException {
@@ -260,7 +229,6 @@ public class WifiPower extends Protocol {
     }
 
     private void sendChanges(Board board, String status, String tag) {
-
         //reconstruct freedomotic object address
         String address = board.getAlias() + ":" + tag;
         LOG.info("Sending WifiPower protocol read event for object address '" + address + "'. It's readed status is " + status);
@@ -341,6 +309,48 @@ public class WifiPower extends Protocol {
     @Override
     protected void onEvent(EventTemplate event) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private void loadBoards() {
+        if (boards == null) {
+            boards = new ArrayList<Board>();
+        }
+        if (devices == null) {
+            devices = new HashMap<String, Board>();
+        }
+        setDescription("Reading status changes from"); //empty description
+        for (int i = 0; i < BOARD_NUMBER; i++) {
+            String ipToQuery;
+            String relayTag;
+            String autoConfiguration;
+            String objectClass;
+            String alias;
+            String monitorRelay;
+            String authentication;
+            String username;
+            String password;
+            int portToQuery;
+            int relayNumber;
+            int startingRelay;
+            ipToQuery = configuration.getTuples().getStringProperty(i, "ip-to-query", "192.168.1.201");
+            portToQuery = configuration.getTuples().getIntProperty(i, "port-to-query", 80);
+            alias = configuration.getTuples().getStringProperty(i, "alias", "default");
+            relayNumber = configuration.getTuples().getIntProperty(i, "relay-number", 4);
+            startingRelay = configuration.getTuples().getIntProperty(i, "starting-relay", 0);
+            authentication = configuration.getTuples().getStringProperty(i, "authentication", "false");
+            username = configuration.getTuples().getStringProperty(i, "username", "ftp");
+            password = configuration.getTuples().getStringProperty(i, "password", "2406");
+            relayTag = configuration.getTuples().getStringProperty(i, "relay-tag", "out");
+            autoConfiguration = configuration.getTuples().getStringProperty(i, "auto-configuration", "false");
+            monitorRelay = configuration.getTuples().getStringProperty(i, "monitor-relay", "true");
+            objectClass = configuration.getTuples().getStringProperty(i, "object.class", "Light");
+            Board board = new Board(ipToQuery, portToQuery, alias, relayNumber, startingRelay, relayTag, autoConfiguration, objectClass,
+                    monitorRelay, authentication, username, password);
+            boards.add(board);
+            // add board object and its alias as key for the hashmap
+            devices.put(alias, board);
+            setDescription(getDescription() + " " + ipToQuery + ":" + portToQuery + ";");
+        }
     }
 
     // retrieve a key from value in the hashmap 
