@@ -1,4 +1,4 @@
-<com.freedomotic.reactions.Command>
+<command>
   <name>Turn off OWN light</name>
   <receiver>app.actuators.protocol.openwebnet.in</receiver>
   <description>An OWN light will turn off</description>
@@ -14,4 +14,4 @@
       <property name="what" value="0"/>
     </properties>
   </properties>
-</com.freedomotic.reactions.Command>
+</command>

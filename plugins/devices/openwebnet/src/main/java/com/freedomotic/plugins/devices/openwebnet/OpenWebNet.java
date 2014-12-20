@@ -1,31 +1,29 @@
 /**
-*
-* Copyright (c) 2009-2014 Freedomotic team
-* http://freedomotic.com
-*
+ *
+ * Copyright (c) 2009-2014 Freedomotic team http://freedomotic.com
+ * 
 * This file is part of Freedomotic
-*
-* This Program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2, or (at your option)
-* any later version.
-*
-* This Program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with Freedomotic; see the file COPYING. If not, see
-* <http://www.gnu.org/licenses/>.
-*/
-
+ * 
+* This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2, or (at your option) any later version.
+ * 
+* This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+* You should have received a copy of the GNU General Public License along with
+ * Freedomotic; see the file COPYING. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
 package com.freedomotic.plugins.devices.openwebnet;
 
 import com.freedomotic.api.EventTemplate;
 import com.freedomotic.api.Protocol;
 import com.freedomotic.app.Freedomotic;
 import com.freedomotic.events.ProtocolRead;
+import com.freedomotic.exceptions.PluginStartupException;
 import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.reactions.Command;
 import java.io.*;
@@ -34,7 +32,6 @@ import java.util.logging.Logger;
 
 import com.myhome.fcrisciani.connector.MyHomeJavaConnector;
 import com.myhome.fcrisciani.exception.MalformedCommandOPEN;
-
 
 public class OpenWebNet extends Protocol {
     /*
@@ -45,9 +42,9 @@ public class OpenWebNet extends Protocol {
     private String address = null;
     private String host = configuration.getProperty("host");
     private Integer port = Integer.parseInt(configuration.getProperty("port"));
-    String _IP_VALUE = configuration.getProperty("host");
-    String _PORT_OPEN_VALUE = configuration.getProperty("port");
-    private final String _MODE_VALUE = configuration.getProperty("mode");
+    //String _IP_VALUE = configuration.getProperty("host");
+    //String _PORT_OPEN_VALUE = configuration.getProperty("port");
+    //private final String _MODE_VALUE = configuration.getProperty("mode");
     static MyHomeJavaConnector myPlant = null;
     MonitorSessionThread monitorSessionThread = null;
     private String _regFilterString = "";
@@ -89,18 +86,19 @@ public class OpenWebNet extends Protocol {
      */
     @Override
     public void onStart() {
-        super.onStart();
-        setPollingWait(POLLING_TIME);
+        setPollingWait(-1);
         // create thread 
-        monitorSessionThread = new MonitorSessionThread(this, _IP_VALUE, Integer.parseInt(_PORT_OPEN_VALUE));
+        monitorSessionThread = new MonitorSessionThread(this, host, port);
         // start thread 
         monitorSessionThread.start();
-        // syncronizes the software with the system status
-        initSystem();
     }
 
     @Override
     protected void onRun() {
+        if (monitorSessionThread.isConnected()) {
+            // syncronizes the software with the system status
+            initSystem();
+        }
     }
 
     /*
@@ -111,9 +109,9 @@ public class OpenWebNet extends Protocol {
         try {
             myPlant.sendCommandAsync(OWNUtilities.createFrame(c), 1);
         } catch (MalformedCommandOPEN ex) {
-            Logger.getLogger(OpenWebNet.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "Malformed OWN frame. " + ex.getLocalizedMessage(), ex);
         }
-    } // close  on command
+    }
 
     @Override
     protected boolean canExecute(Command c) {
@@ -127,25 +125,23 @@ public class OpenWebNet extends Protocol {
 
     @Override
     public void onStop() {
-        super.onStop();
-        this.setDescription("Disconnected");
-        setPollingWait(-1); // disable polling
+        this.setDescription("Plugin stopped");
     }
 
     // sends diagnostic frames to syncronize the software with the real system
-    public void initSystem() {
+    private void initSystem() {
         try {
             LOG.info("Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " frame to inizialize LIGHTNING");
-            OWNFrame.writeAreaLog(MonitorSessionThread.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (inizialize LIGHTNING)");
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (inizialize LIGHTNING)");
             myPlant.sendCommandAsync(LIGHTNING_DIAGNOSTIC_FRAME, 1);
             LOG.info("Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " frame to inizialize AUTOMATIONS");
-            OWNFrame.writeAreaLog(MonitorSessionThread.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (inizialize AUTOMATIONS)");
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (inizialize AUTOMATIONS)");
             myPlant.sendCommandAsync(AUTOMATIONS_DIAGNOSTIC_FRAME, 1);
             LOG.info("Sending " + ALARM_DIAGNOSTIC_FRAME + " frame to inizialize ALARM");
-            OWNFrame.writeAreaLog(MonitorSessionThread.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (inizialize ALARM)");
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (inizialize ALARM)");
             myPlant.sendCommandAsync(ALARM_DIAGNOSTIC_FRAME, 1);
             LOG.info("Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " frame to inizialize POWER MANAGEMENT");
-            OWNFrame.writeAreaLog(MonitorSessionThread.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (inizialize POWER MANAGEMENT)");
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (inizialize POWER MANAGEMENT)");
             myPlant.sendCommandAsync(POWER_MANAGEMENT_DIAGNOSTIC_FRAME, 1);
         } catch (MalformedCommandOPEN ex) {
             Logger.getLogger(OpenWebNet.class.getName()).log(Level.SEVERE, null, ex);

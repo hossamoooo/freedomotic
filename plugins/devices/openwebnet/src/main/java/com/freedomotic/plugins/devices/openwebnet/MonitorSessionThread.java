@@ -1,34 +1,31 @@
 /**
-*
-* Copyright (c) 2009-2014 Freedomotic team
-* http://freedomotic.com
-*
+ *
+ * Copyright (c) 2009-2014 Freedomotic team http://freedomotic.com
+ * 
 * This file is part of Freedomotic
-*
-* This Program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2, or (at your option)
-* any later version.
-*
-* This Program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with Freedomotic; see the file COPYING. If not, see
-* <http://www.gnu.org/licenses/>.
-*/
-
+ * 
+* This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2, or (at your option) any later version.
+ * 
+* This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+* You should have received a copy of the GNU General Public License along with
+ * Freedomotic; see the file COPYING. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
 package com.freedomotic.plugins.devices.openwebnet;
 
 import com.myhome.fcrisciani.connector.MyHomeJavaConnector;
 import com.freedomotic.app.Freedomotic;
 import com.freedomotic.events.ProtocolRead;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+//import java.text.SimpleDateFormat;
+//import java.util.Calendar;
+//import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,22 +34,26 @@ public class MonitorSessionThread extends Thread {
     private static OpenWebNet pluginReference = null;
     private String ipAddress = null;
     private Integer port = 0;
+    private boolean connected = false;
 
     public void run() {
         //connect to own gateway
         pluginReference.myPlant = new MyHomeJavaConnector(ipAddress, port);
         try {
             OpenWebNet.myPlant.startMonitoring();
+            connected = true;
             while (true) {
                 try {
                     String readFrame = pluginReference.myPlant.readMonitoring();
-                    System.out.println("Comando: " + readFrame);
+                    pluginReference.LOG.log(Level.INFO, "Received frame ''{0}'' ", readFrame);
                     buildEventFromFrame(readFrame);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(OpenWebNet.class.getName()).log(Level.SEVERE, null, ex);
+                    pluginReference.LOG.log(Level.SEVERE, "Monitoring interrupted for: " + ex.getLocalizedMessage(), ex);
+                    connected = false;
                 }
             }
         } catch (IOException ex) {
+            connected = false;
         }
     }
 
@@ -63,13 +64,11 @@ public class MonitorSessionThread extends Thread {
         this.port = port;
     }
 
-    public static String getDateTime() {
-        Calendar calendar = new GregorianCalendar();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        return (sdf.format(calendar.getTime()));
+    public boolean isConnected() {
+        return (connected);
     }
 
-     public static ProtocolRead buildEventFromFrame(String frame) {
+    public static ProtocolRead buildEventFromFrame(String frame) {
         String who = null;
         String what = null;
         String where = null;
@@ -83,7 +82,7 @@ public class MonitorSessionThread extends Thread {
         int length = frame.length();
         if (frame.isEmpty() || !frame.endsWith("##")) {
             OpenWebNet.LOG.severe("Malformed frame " + frame + " " + frame.substring(length - 2, length));
-            OWNFrame.writeAreaLog(getDateTime() + " Mon: Malformed frame " + frame);
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Mon: Malformed frame " + frame);
             return null;
         }
 
@@ -350,7 +349,7 @@ public class MonitorSessionThread extends Thread {
             }
             // notify event
             pluginReference.notifyEvent(event);
-            OWNFrame.writeAreaLog(getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
 
         }
 
@@ -614,7 +613,7 @@ public class MonitorSessionThread extends Thread {
                 event.addProperty("object.name", objectName);
             }
             //Freedomotic.logger.info("Frame " + frame + " " + "is " + messageType + " message. Notify it as Freedomotic event " + messageDescription); // for debug
-            OWNFrame.writeAreaLog(getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
             pluginReference.notifyEvent(event);
         }
         return null;

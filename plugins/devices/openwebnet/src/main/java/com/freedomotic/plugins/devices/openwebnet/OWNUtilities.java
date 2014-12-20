@@ -169,6 +169,12 @@ public class OWNUtilities {
         return (frame);
     }
     
+    public static String getDateTime() {
+        Calendar calendar = new GregorianCalendar();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return (sdf.format(calendar.getTime()));
+    }
+    
     public static String convertTemperature(String temperature) {
         String temp = null;
         if (!temperature.substring(0).equalsIgnoreCase("0")) {
