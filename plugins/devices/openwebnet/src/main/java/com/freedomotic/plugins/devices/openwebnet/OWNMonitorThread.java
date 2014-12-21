@@ -23,13 +23,10 @@ import com.myhome.fcrisciani.connector.MyHomeJavaConnector;
 import com.freedomotic.app.Freedomotic;
 import com.freedomotic.events.ProtocolRead;
 import java.io.IOException;
-//import java.text.SimpleDateFormat;
-//import java.util.Calendar;
-//import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MonitorSessionThread extends Thread {
+public class OWNMonitorThread extends Thread {
 
     private static OpenWebNet pluginReference = null;
     private String ipAddress = null;
@@ -57,7 +54,7 @@ public class MonitorSessionThread extends Thread {
         }
     }
 
-    public MonitorSessionThread(OpenWebNet pluginReference, String ipAddress, Integer port) {
+    public OWNMonitorThread(OpenWebNet pluginReference, String ipAddress, Integer port) {
         // eventuali azioni per il costruttore 
         this.pluginReference = pluginReference;
         this.ipAddress = ipAddress;
@@ -369,6 +366,7 @@ public class MonitorSessionThread extends Thread {
                 //LIGHTING
                 case 1:
                     messageType = "Lighting";
+                    objectClass = "Light";
                     if ((where.length() > 1) && (!where.substring(1, 1).equalsIgnoreCase("#"))) {
                         event.addProperty("object.class", objectClass);
                     }

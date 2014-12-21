@@ -23,7 +23,6 @@ import com.freedomotic.api.EventTemplate;
 import com.freedomotic.api.Protocol;
 import com.freedomotic.app.Freedomotic;
 import com.freedomotic.events.ProtocolRead;
-import com.freedomotic.exceptions.PluginStartupException;
 import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.reactions.Command;
 import java.io.*;
@@ -39,17 +38,12 @@ public class OpenWebNet extends Protocol {
      */
 
     public static final Logger LOG = Logger.getLogger(OpenWebNet.class.getName());
-    private String address = null;
-    private String host = configuration.getProperty("host");
-    private Integer port = Integer.parseInt(configuration.getProperty("port"));
-    //String _IP_VALUE = configuration.getProperty("host");
-    //String _PORT_OPEN_VALUE = configuration.getProperty("port");
-    //private final String _MODE_VALUE = configuration.getProperty("mode");
+    private final String host = configuration.getProperty("host");
+    private final Integer port = Integer.parseInt(configuration.getProperty("port"));
     static MyHomeJavaConnector myPlant = null;
-    MonitorSessionThread monitorSessionThread = null;
-    private String _regFilterString = "";
-    static String frame;
-    private static int POLLING_TIME = 1000;
+    private OWNMonitorThread monitorSessionThread = null;
+    private String address = null;
+    private static String frame = null;
     OWNFrame JFrame = new OWNFrame(this);
 
     /*
@@ -88,7 +82,7 @@ public class OpenWebNet extends Protocol {
     public void onStart() {
         setPollingWait(-1);
         // create thread 
-        monitorSessionThread = new MonitorSessionThread(this, host, port);
+        monitorSessionThread = new OWNMonitorThread(this, host, port);
         // start thread 
         monitorSessionThread.start();
     }
@@ -101,9 +95,6 @@ public class OpenWebNet extends Protocol {
         }
     }
 
-    /*
-     * Actuator side
-     */
     @Override
     public void onCommand(Command c) throws IOException, UnableToExecuteException {
         try {
@@ -131,16 +122,16 @@ public class OpenWebNet extends Protocol {
     // sends diagnostic frames to syncronize the software with the real system
     private void initSystem() {
         try {
-            LOG.info("Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " frame to inizialize LIGHTNING");
+            LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize LIGHTNING", LIGHTNING_DIAGNOSTIC_FRAME);
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (inizialize LIGHTNING)");
             myPlant.sendCommandAsync(LIGHTNING_DIAGNOSTIC_FRAME, 1);
-            LOG.info("Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " frame to inizialize AUTOMATIONS");
+            LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize AUTOMATIONS", AUTOMATIONS_DIAGNOSTIC_FRAME);
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (inizialize AUTOMATIONS)");
             myPlant.sendCommandAsync(AUTOMATIONS_DIAGNOSTIC_FRAME, 1);
-            LOG.info("Sending " + ALARM_DIAGNOSTIC_FRAME + " frame to inizialize ALARM");
+            LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize ALARM", ALARM_DIAGNOSTIC_FRAME);
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (inizialize ALARM)");
             myPlant.sendCommandAsync(ALARM_DIAGNOSTIC_FRAME, 1);
-            LOG.info("Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " frame to inizialize POWER MANAGEMENT");
+            LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize POWER MANAGEMENT", POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (inizialize POWER MANAGEMENT)");
             myPlant.sendCommandAsync(POWER_MANAGEMENT_DIAGNOSTIC_FRAME, 1);
         } catch (MalformedCommandOPEN ex) {
