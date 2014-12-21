@@ -73,11 +73,6 @@ public class OpenWebNet extends Protocol {
     }
 
 
-    /*
-     *
-     * Sensor side
-     *
-     */
     @Override
     public void onStart() {
         setPollingWait(-1);
@@ -89,10 +84,8 @@ public class OpenWebNet extends Protocol {
 
     @Override
     protected void onRun() {
-        if (monitorSessionThread.isConnected()) {
-            // syncronizes the software with the system status
-            initSystem();
-        }
+        // syncronizes the software with the system status
+        initSystem();
     }
 
     @Override
@@ -116,7 +109,12 @@ public class OpenWebNet extends Protocol {
 
     @Override
     public void onStop() {
-        this.setDescription("Plugin stopped");
+        try {
+            myPlant.stopMonitoring();
+            this.setDescription("Plugin stopped");
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error during plugin stopping for " + ex.getLocalizedMessage(), ex);
+        }
     }
 
     // sends diagnostic frames to syncronize the software with the real system
@@ -135,7 +133,7 @@ public class OpenWebNet extends Protocol {
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (inizialize POWER MANAGEMENT)");
             myPlant.sendCommandAsync(POWER_MANAGEMENT_DIAGNOSTIC_FRAME, 1);
         } catch (MalformedCommandOPEN ex) {
-            Logger.getLogger(OpenWebNet.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "Malformed OWN frame. " + ex.getLocalizedMessage(), ex);
         }
     }
 }

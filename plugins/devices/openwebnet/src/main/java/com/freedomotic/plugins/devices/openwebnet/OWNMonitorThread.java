@@ -31,14 +31,12 @@ public class OWNMonitorThread extends Thread {
     private static OpenWebNet pluginReference = null;
     private String ipAddress = null;
     private Integer port = 0;
-    private boolean connected = false;
 
     public void run() {
         //connect to own gateway
         pluginReference.myPlant = new MyHomeJavaConnector(ipAddress, port);
         try {
             OpenWebNet.myPlant.startMonitoring();
-            connected = true;
             while (true) {
                 try {
                     String readFrame = pluginReference.myPlant.readMonitoring();
@@ -46,11 +44,9 @@ public class OWNMonitorThread extends Thread {
                     buildEventFromFrame(readFrame);
                 } catch (InterruptedException ex) {
                     pluginReference.LOG.log(Level.SEVERE, "Monitoring interrupted for: " + ex.getLocalizedMessage(), ex);
-                    connected = false;
                 }
             }
         } catch (IOException ex) {
-            connected = false;
         }
     }
 
@@ -59,10 +55,6 @@ public class OWNMonitorThread extends Thread {
         this.pluginReference = pluginReference;
         this.ipAddress = ipAddress;
         this.port = port;
-    }
-
-    public boolean isConnected() {
-        return (connected);
     }
 
     public static ProtocolRead buildEventFromFrame(String frame) {
