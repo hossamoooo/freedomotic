@@ -37,16 +37,19 @@ public class OWNMonitorThread extends Thread {
         pluginReference.myPlant = new MyHomeJavaConnector(ipAddress, port);
         try {
             OpenWebNet.myPlant.startMonitoring();
-            while (true) {
-                try {
-                    String readFrame = pluginReference.myPlant.readMonitoring();
-                    pluginReference.LOG.log(Level.INFO, "Received frame ''{0}'' ", readFrame);
-                    buildEventFromFrame(readFrame);
-                } catch (InterruptedException ex) {
-                    pluginReference.LOG.log(Level.SEVERE, "Monitoring interrupted for: " + ex.getLocalizedMessage(), ex);
-                }
-            }
+            pluginReference.myPlant.readMonitoring(this);
+            //while (true) {
+              //  try {
+              //      String readFrame = pluginReference.myPlant.readMonitoring();
+              //      pluginReference.LOG.log(Level.INFO, "Received frame ''{0}'' ", readFrame);
+              //      buildEventFromFrame(readFrame);
+              //  } catch (InterruptedException ex) {
+              //      pluginReference.LOG.log(Level.SEVERE, "Monitoring interrupted for: " + ex.getLocalizedMessage(), ex);
+              //  }
+           // }
         } catch (IOException ex) {
+        } catch (InterruptedException ex) {
+            Logger.getLogger(OWNMonitorThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
