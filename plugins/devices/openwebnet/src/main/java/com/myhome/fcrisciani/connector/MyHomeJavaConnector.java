@@ -8,8 +8,6 @@
  */
 package com.myhome.fcrisciani.connector;
 
-import com.freedomotic.events.ProtocolRead;
-import com.freedomotic.plugins.devices.openwebnet.OWNMonitorThread;
 import com.freedomotic.plugins.devices.openwebnet.OpenWebNet;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -100,7 +98,9 @@ public class MyHomeJavaConnector {
         return newMessage;
     }
 
-    /*PUBLIC*/
+    /*
+     * PUBLIC
+     */
     /**
      * Create an instance of this class, need the IP address and port of the
      * webserver to connect to
@@ -118,8 +118,12 @@ public class MyHomeJavaConnector {
         this.commandQueueThread.start();
     }
 
-    /* COMMAND SESSION*/
-    /* Command Sending Sync */
+    /*
+     * COMMAND SESSION
+     */
+    /*
+     * Command Sending Sync
+     */
     /**
      * Send a command synchronously and atomically, create a new command socket,
      * sends the command and returns command results before closing the socket
@@ -181,7 +185,9 @@ public class MyHomeJavaConnector {
         return sendCommandSync(command.getCommandString());
     }
 
-    /* Command Sending Async */
+    /*
+     * Command Sending Async
+     */
     /**
      * Send a command asynchronously, this is queued with a priority and sent
      * automatically
@@ -256,7 +262,9 @@ public class MyHomeJavaConnector {
 
     }
 
-    /* MONITOR SESSION*/
+    /*
+     * MONITOR SESSION
+     */
     /**
      * Start a monitoring session
      *
@@ -305,11 +313,11 @@ public class MyHomeJavaConnector {
     }
 
     // added method to capture multiple frames
-    public void readMonitoring(OWNMonitorThread monitor) throws InterruptedException {
+    public void readMonitoring(OpenWebNet pluginRef) throws InterruptedException {
         do {
             int retry = 0;
             try {
-                ProtocolRead event = null;
+                //ProtocolRead event = null;
                 BufferedReader inputStream = new BufferedReader(new InputStreamReader(monitorSk.getInputStream()));
                 StringBuffer response = new StringBuffer();
                 int ci = 0;
@@ -318,7 +326,7 @@ public class MyHomeJavaConnector {
                 do {
                     ci = inputStream.read();
                     if (ci == -1) {
-                        OpenWebNet.LOG.log(Level.SEVERE, "Socket already closed by server");
+                        pluginRef.LOG.log(Level.SEVERE, "Socket already closed by server");
                         inputStream.close();
                         throw new IOException();
                     } else {
@@ -330,9 +338,8 @@ public class MyHomeJavaConnector {
                         } else if (c == '#') // Found second # command terminated correctly EXIT
                         {
                             response.append(c);
-                            //monitorBuffer.push(response.toString());
-                            event = monitor.buildEventFromFrame(response.toString());
-                            OpenWebNet.LOG.log(Level.INFO, "Frame received: " + response.toString());
+                            pluginRef.buildEventFromFrame(response.toString());
+                            pluginRef.LOG.log(Level.INFO, "Frame received from OWN gateway: " + response.toString());
                             response = new StringBuffer();
                             ci = 0;
                             c = ' ';
@@ -346,20 +353,25 @@ public class MyHomeJavaConnector {
                     }
                 } while (true);
             } catch (IOException e) {
-                try {
-                    MyHomeSocketFactory.disconnect(monitorSk);
-                } catch (IOException e1) {
-                    OpenWebNet.LOG.log(Level.SEVERE, "Monitor disconnection problem. IOException: " + e1);
+                // reconnection only if the plugin is running
+                if (pluginRef.isRunning()) {
+                    try {
+                        MyHomeSocketFactory.disconnect(monitorSk);
+                    } catch (IOException e1) {
+                        pluginRef.LOG.log(Level.SEVERE, "Monitor disconnection problem. IOException: " + e1);
+                    }
+                    retry++;
+                    Thread.sleep(1000);
+                    pluginRef.LOG.log(Level.SEVERE, "Monitor connection problem retry temptative: " + retry);
+                    try {
+                        startMonitoring();
+                    } catch (IOException e1) {
+                        OpenWebNet.LOG.log(Level.SEVERE, "Monitor connection problem. IOException: " + e1);
+                    }
+                    continue;
+                } else {
+                    break;
                 }
-                retry++;
-                Thread.sleep(1000);
-                OpenWebNet.LOG.log(Level.SEVERE, "Monitor connection problem retry temptative: " + retry);
-                try {
-                    startMonitoring();
-                } catch (IOException e1) {
-                    OpenWebNet.LOG.log(Level.SEVERE, "Monitor connection problem. IOException: " + e1);
-                }
-                continue;
             }
         } while (true);
     }
