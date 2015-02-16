@@ -14,7 +14,7 @@
                <logical>SET</logical>
                <attribute>behaviorValue</attribute>
                <operand>EQUALS</operand>
-               <value>@event.what</value>
+               <value>@event.openwebnet.what</value>
             </statement>
         </payload>
     </payload>

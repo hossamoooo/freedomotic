@@ -44,7 +44,7 @@ public class OpenWebNet extends Protocol {
     public MyHomeJavaConnector myPlant = null;
     private String address = null;
     private String frame = null;
-    private ProtocolRead event =null;
+    private ProtocolRead event = null;
     OWNFrame JFrame = new OWNFrame(this);
 
     /*
@@ -77,12 +77,6 @@ public class OpenWebNet extends Protocol {
     @Override
     public void onStart() {
         myPlant = new MyHomeJavaConnector(host, port);
-
-
-    }
-
-    @Override
-    protected void onRun() {
         try {
             myPlant.startMonitoring();
             myPlant.readMonitoring(this);
@@ -90,6 +84,11 @@ public class OpenWebNet extends Protocol {
         } catch (InterruptedException ex) {
             //LOGLogger.getLogger(OWNMonitorThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+    }
+
+    @Override
+    protected void onRun() {
         // syncronizes the software with the system status
         initSystem();
     }
@@ -416,15 +415,15 @@ public class OpenWebNet extends Protocol {
                 }
             }
 
-            event.addProperty("who", who);
+            event.addProperty("openwebnet.who", who);
             if (where != null) {
-                event.addProperty("where", where);
+                event.addProperty("openwebnet.where", where);
             }
             if (messageDescription != null) {
-                event.addProperty("messageDescription", messageDescription);
+                event.addProperty("openwebnet.messageDescription", messageDescription);
             }
             if (messageType != null) {
-                event.addProperty("messageType", messageType);
+                event.addProperty("openwebnet.messageType", messageType);
             }
             // notify event
             notifyEvent(event);
@@ -672,23 +671,21 @@ public class OpenWebNet extends Protocol {
 
 
             if (who != null) {
-                event.addProperty("who", who);
+                event.addProperty("openwebnet.who", who);
             }
             if (what != null) {
-                event.addProperty("what", what);
+                event.addProperty("openwebnet.what", what);
             }
             if (where != null) {
-                event.addProperty("where", where);
+                event.addProperty("openwebnet.where", where);
             }
             if (messageType != null) {
-                event.addProperty("messageType", messageType);
+                event.addProperty("openwebnet.messageType", messageType);
             }
             if (messageDescription != null) {
-                event.addProperty("messageDescription", messageDescription);
+                event.addProperty("openwebnet.messageDescription", messageDescription);
             }
-            //  if (objectClass != null) {
-            //      event.addProperty("object.class", objectClass);
-            //  }
+
             if (objectName != null) {
                 event.addProperty("object.name", objectName);
             }
