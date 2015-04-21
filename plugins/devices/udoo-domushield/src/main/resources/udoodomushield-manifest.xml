@@ -1,0 +1,20 @@
+<config>
+    <!-- PLUGINS DEFAULT PARAMETERS --> 
+    <properties>
+        <property name="name" value="udoodomoshield"/>
+        <property name="description" value="Udoo DomuShield controller"/>
+        <property name="category" value="protocol"/>
+        <property name="short-name" value="udoo-domushield"/>
+        <property name="protocol.name" value="udoo-domushield"/>
+        <property name="serial.port" value="/dev/ttyACM0"/>       
+        <property name="serial.baudrate" value="9600"/>
+        <property name="serial.databits" value="8"/>
+        <property name="serial.parity" value="0"/>
+        <property name="serial.stopbits" value="1"/>
+        <property name="chunk.terminator" value="&#xA;"/>
+        <property name="chunk.size" value="5"/>
+        <property name="delimiter" value=";"/>
+    </properties>
+</config>
+
+                

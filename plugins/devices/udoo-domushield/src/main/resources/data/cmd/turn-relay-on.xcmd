@@ -1,0 +1,13 @@
+<command>
+    <name>Arduino USB: Turn led ON</name>
+    <receiver>app.actuators.protocol.arduinousb.in</receiver>
+    <description>turns on the Arduino USB board led</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="arduinousb.message" value="a"/>
+        </properties>
+    </properties>
+</command>
