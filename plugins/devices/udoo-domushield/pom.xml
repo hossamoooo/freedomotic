@@ -9,7 +9,7 @@
     </parent>    
     <artifactId>udoo-domushield</artifactId>
     <packaging>jar</packaging>
-    <name>udoo-domoshield</name>
+    <name>udoo-domushield</name>
     <version>3.0</version>
     <developers>
         <developer>

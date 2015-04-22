@@ -13,8 +13,23 @@
         <property name="serial.stopbits" value="1"/>
         <property name="chunk.terminator" value="&#xA;"/>
         <property name="chunk.size" value="5"/>
-        <property name="delimiter" value=";"/>
+        <property name="data-delimiter" value=";"/>
     </properties>
+
+    <tuples>
+        <tuple>
+            <property name="object.class" value="Thermometer"/>
+            <property name="temperature" value="Udoo DomuShield reads temperature"/>
+        </tuple>
+        <tuple>
+            <property name="object.class" value="Light Sensor"/>
+            <property name="luminosity" value="Udoo DomuShield reads luminosity"/>
+        </tuple>
+        <tuple>
+            <property name="object.class" value="Light"/>
+            <property name="powered" value="Udoo DomuShield reads relay status"/>
+        </tuple>
+    </tuples>
 </config>
 
                 

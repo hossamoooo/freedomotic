@@ -27,6 +27,7 @@ import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.helpers.SerialHelper;
 import com.freedomotic.helpers.SerialPortListener;
 import com.freedomotic.reactions.Command;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jssc.SerialPortException;
@@ -34,17 +35,25 @@ import jssc.SerialPortException;
 public class UdooDomuShield extends Protocol {
 
     private static final Logger LOG = Logger.getLogger(UdooDomuShield.class.getName());
-    private static EkironjiDevice mDevice = null;
-    private boolean isAutoLightOn = false;
-    private int autoLightTh = 10;
     private String portName = configuration.getStringProperty("serial.port", "/dev/usb0");
     private Integer baudRate = configuration.getIntProperty("serial.baudrate", 9600);
     private Integer dataBits = configuration.getIntProperty("serial.databits", 8);
     private Integer parity = configuration.getIntProperty("serial.parity", 0);
     private Integer stopBits = configuration.getIntProperty("serial.stopbits", 1);
     private String chunkTerminator = configuration.getStringProperty("chunk.terminator", "\n");
-    private String delimiter = configuration.getStringProperty("delimiter", ";");
+    private String dataDelimiter = configuration.getStringProperty("data-delimiter", ";");
     private SerialHelper serial;
+    private String storedHumidity = "";
+    private String storedLuminosity = "";
+    private String storedTemperature = "";
+    private static EkironjiDevice mDevice = null;
+    private boolean isAutoLightOn = false;
+    private int autoLightTh = 10;
+    String[] receivedMessage = null;
+    String[] currentObject = null;
+    String readValue = null;
+    HashMap<Integer, EkironjObject> objects = null;
+    ProtocolRead event = null;
 
     public UdooDomuShield() {
         super("Udoo DomuShield", "/udoo-domushield/udoo-domushield-manifest.xml");
@@ -94,20 +103,39 @@ public class UdooDomuShield extends Protocol {
         }
     }
 
-    private void sendChanges(String data) {
-        // in this example we are using Arduino Serial.println() so
-        // remove '\r' and '\n' at the end of the string and split data read
-        String[] receivedMessage = data.substring(0, data.length() - 2).split(delimiter);
-        String receivedAddress = receivedMessage[0];
-        String receivedStatus = receivedMessage[1];
+    private void inizialize() {
 
-        ProtocolRead event = new ProtocolRead(this, "udoo-domushield", receivedAddress);
-        if (receivedStatus.equalsIgnoreCase("on")) {
-            event.addProperty("isOn", "true");
-        } else {
-            event.addProperty("isOn", "false");
+        EkironjObject obj = new EkironjObject("humSensor", "sensor", "Hygrometer", "", "H");
+        objects.put(0, obj);
+        obj = new EkironjObject("lumSensor", "sensor", "Light Sensor", "", "L");
+        objects.put(1, obj);
+        obj = new EkironjObject("tempSensor", "sensor", "Thermometer", "", "L");
+        objects.put(2, obj);
+        obj = new EkironjObject("relay1", "actuator", "Light", "", "R1");
+        objects.put(3, obj);
+        obj = new EkironjObject("relay2", "actuator", "Light", "", "R2");
+        objects.put(4, obj);
+    }
+
+    private void sendChanges(String data) {
+
+        // remove '\r' and '\n' at the end of the string and split data read
+        receivedMessage = data.substring(0, data.length() - 2).split(dataDelimiter);
+
+        for (int i = 0; i < receivedMessage.length; i++) {
+            currentObject = receivedMessage[i].split("#");
+            readValue = currentObject[1];
+            if (isChangedValue(i, readValue)) {
+                event = new ProtocolRead(this, "udoo-domushield", objects.get(i).getAddress());
+                //         if (receivedStatus.equalsIgnoreCase("on")) {
+                //             event.addProperty("isOn", "true");
+                //         } else {
+                //             event.addProperty("isOn", "false");
+                //       }
+                event.addProperty("read.value", readValue);
+                this.notifyEvent(event);
+            }
         }
-        this.notifyEvent(event);
     }
 
     @Override
@@ -120,6 +148,15 @@ public class UdooDomuShield extends Protocol {
         //not nothing. This plugins doesn't listen to freedomotic events
     }
 
+    private boolean isChangedValue(int objectIndex, String readValue) {
+
+        if (objects.get(objectIndex).getStoredValue().equalsIgnoreCase(readValue)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private byte[] intToByteArray(int integer) {
         byte[] array = new byte[4];
 
@@ -130,19 +167,22 @@ public class UdooDomuShield extends Protocol {
 
         return array;
     }
-    
-     private String intToBits(int integer){
-    	String s = "";
-    	
-    	for(int i=31; i>=0; i--){
-    		if(i % 8 == 7) s+= " ";
-    		
-    		if(((integer >>> i) & 0x1) == 0)
-    			s+="0";
-    		else
-    			s+=1;
-    	}
-    	
-    	return s;
+
+    private String intToBits(int integer) {
+        String s = "";
+
+        for (int i = 31; i >= 0; i--) {
+            if (i % 8 == 7) {
+                s += " ";
+            }
+
+            if (((integer >>> i) & 0x1) == 0) {
+                s += "0";
+            } else {
+                s += 1;
+            }
+        }
+
+        return s;
     }
 }
