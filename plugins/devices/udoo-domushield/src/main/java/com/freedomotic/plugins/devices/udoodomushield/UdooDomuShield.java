@@ -19,6 +19,10 @@
  */
 package com.freedomotic.plugins.devices.udoodomushield;
 
+/**
+ *
+ * @author Mauro Cicolella <mcicolella@libero.it>
+ */
 import com.freedomotic.api.EventTemplate;
 import com.freedomotic.api.Protocol;
 import com.freedomotic.events.ProtocolRead;
@@ -41,14 +45,12 @@ public class UdooDomuShield extends Protocol {
     private Integer parity = configuration.getIntProperty("serial.parity", 0);
     private Integer stopBits = configuration.getIntProperty("serial.stopbits", 1);
     private String chunkTerminator = configuration.getStringProperty("chunk.terminator", "\n");
-    private String dataDelimiter = configuration.getStringProperty("data-delimiter", ";");
+    private String dataDelimiter = configuration.getStringProperty("data-delimiter", ",");
+    private String valueDelimiter = configuration.getStringProperty("value-delimiter", "#");
     private SerialHelper serial;
     private String storedHumidity = "";
     private String storedLuminosity = "";
     private String storedTemperature = "";
-    private static EkironjiDevice mDevice = null;
-    private boolean isAutoLightOn = false;
-    private int autoLightTh = 10;
     String[] receivedMessage = null;
     String[] currentObject = null;
     String readValue = null;
@@ -56,7 +58,7 @@ public class UdooDomuShield extends Protocol {
     ProtocolRead event = null;
 
     public UdooDomuShield() {
-        super("Udoo DomuShield", "/udoo-domushield/udoo-domushield-manifest.xml");
+        super("UDOO DomuShield", "/udoo-domushield/udoo-domushield-manifest.xml");
         //This disables loop execution od onRun() method
         setPollingWait(-1); // onRun() executes once.
     }
@@ -64,19 +66,19 @@ public class UdooDomuShield extends Protocol {
     @Override
     public void onStart() throws PluginStartupException {
         try {
-            mDevice = new EkironjiDevice(null);
+            initialize();
             serial = new SerialHelper(portName, baudRate, dataBits, stopBits, parity, new SerialPortListener() {
 
                 @Override
                 public void onDataAvailable(String data) {
-                    LOG.log(Level.CONFIG, "Udoo DomuShield received: {0}", data);
+                    LOG.log(Level.CONFIG, "UDOO DomuShield received: {0}", data);
                     sendChanges(data);
                 }
             });
             // in this example it reads until a string terminator (default: new line char)
             serial.setChunkTerminator(chunkTerminator);
         } catch (SerialPortException ex) {
-            throw new PluginStartupException("Error while creating Arduino serial connection. " + ex.getMessage(), ex);
+            throw new PluginStartupException("Error while creating UDOO DomuShield serial connection. " + ex.getMessage(), ex);
         }
     }
 
@@ -89,7 +91,7 @@ public class UdooDomuShield extends Protocol {
 
     @Override
     protected void onRun() {
-        //nothing to do, Arduino messages are read by SerialHelper
+        //nothing to do, UDOO DomuShield messages are read by SerialHelper
     }
 
     @Override
@@ -99,17 +101,17 @@ public class UdooDomuShield extends Protocol {
         try {
             serial.write(message);
         } catch (SerialPortException ex) {
-            throw new UnableToExecuteException("Error writing message '" + message + "' to arduino serial board: " + ex.getMessage(), ex);
+            throw new UnableToExecuteException("Error writing message '" + message + "' to UDOO DomuShield shield: " + ex.getMessage(), ex);
         }
     }
 
-    private void inizialize() {
+    private void initialize() {
 
         EkironjObject obj = new EkironjObject("humSensor", "sensor", "Hygrometer", "", "H");
         objects.put(0, obj);
         obj = new EkironjObject("lumSensor", "sensor", "Light Sensor", "", "L");
         objects.put(1, obj);
-        obj = new EkironjObject("tempSensor", "sensor", "Thermometer", "", "L");
+        obj = new EkironjObject("tempSensor", "sensor", "Thermometer", "", "T");
         objects.put(2, obj);
         obj = new EkironjObject("relay1", "actuator", "Light", "", "R1");
         objects.put(3, obj);
@@ -123,8 +125,8 @@ public class UdooDomuShield extends Protocol {
         receivedMessage = data.substring(0, data.length() - 2).split(dataDelimiter);
 
         for (int i = 0; i < receivedMessage.length; i++) {
-            currentObject = receivedMessage[i].split("#");
-            readValue = currentObject[1];
+            currentObject = receivedMessage[i].split(valueDelimiter);
+            readValue = currentObject[i];
             if (isChangedValue(i, readValue)) {
                 event = new ProtocolRead(this, "udoo-domushield", objects.get(i).getAddress());
                 //         if (receivedStatus.equalsIgnoreCase("on")) {
@@ -133,6 +135,10 @@ public class UdooDomuShield extends Protocol {
                 //             event.addProperty("isOn", "false");
                 //       }
                 event.addProperty("read.value", readValue);
+                event.addProperty("object.class", objects.get(i).getFreedomoticClass());
+                event.addProperty("object.name", "Udoo " + objects.get(i).getName());
+                event.addProperty("object.addres", objects.get(i).getAddress());
+                objects.get(i).setStoredValue(readValue);
                 this.notifyEvent(event);
             }
         }
@@ -148,6 +154,14 @@ public class UdooDomuShield extends Protocol {
         //not nothing. This plugins doesn't listen to freedomotic events
     }
 
+    /**
+     * Checks if a value has changed or not avoiding to send unuseful events
+     *
+     * @param objectIndex
+     * @param readValue
+     * @return boolean
+     *
+     */
     private boolean isChangedValue(int objectIndex, String readValue) {
 
         if (objects.get(objectIndex).getStoredValue().equalsIgnoreCase(readValue)) {
