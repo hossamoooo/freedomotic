@@ -1,18 +1,22 @@
 <config>
-    <!-- PLUGINS DEFAULT PARAMETERS --> 
+    <!-- PLUGINS PARAMETERS --> 
     <properties>
         <property name="name" value="udoodomoshield"/>
         <property name="description" value="UDOO DomuShield controller"/>
         <property name="category" value="protocol"/>
         <property name="short-name" value="udoo-domushield"/>
         <property name="protocol.name" value="udoo-domushield"/>
-        <property name="serial.port" value="/dev/ttyACM0"/>       
+
+    <!-- SERIAL PORT PARAMETERS --> 
+        <property name="serial.port" value="COM5"/>       
         <property name="serial.baudrate" value="9600"/>
         <property name="serial.databits" value="8"/>
         <property name="serial.parity" value="0"/>
         <property name="serial.stopbits" value="1"/>
         <property name="chunk.terminator" value="&#xA;"/>
         <property name="chunk.size" value="5"/>
+
+    <!-- SERIAL PROTOCOL PARAMETERS --> 
         <property name="data-delimiter" value=","/>
         <property name="value-delimiter" value="#"/>
     </properties>
@@ -33,6 +37,8 @@
         <tuple>
             <property name="object.class" value="Light"/>
             <property name="powered" value="UDOO DomuShield reads relay status"/>
+            <property name="turn on" value="Turn ON relay on UDOO DomuShield"/>
+            <property name="turn off" value="Turn OFF relay on UDOO DomuShield"/>
         </tuple>
     </tuples>
 </config>

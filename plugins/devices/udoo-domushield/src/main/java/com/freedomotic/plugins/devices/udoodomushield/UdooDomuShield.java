@@ -56,6 +56,50 @@ public class UdooDomuShield extends Protocol {
     String readValue = null;
     HashMap<Integer, EkironjObject> objects = null;
     ProtocolRead event = null;
+    /**
+     * These values are use to encode and decode an easy custom protocol
+     *
+     * |__-__+__ __|__ __ __ __|__ __ __ __|__ __ __ __| (4 bytes) 31 23 15 8 0
+     */
+    // masks
+    public final static int OP_CODE_MASK = 0xf0000000;
+    public final static int ID_CODE_MASK = 0x0f000000;
+    public final static int MAIN_OP_CODE_MASK = 0xc0000000;
+    public final static int SUB_OP_CODE_MASK = 0x30000000;
+    public final static int CMD_MASK = 0xff000000;
+    public final static int RED_MASK = 0x00ff0000;
+    public final static int GREEN_MASK = 0x0000ff00;
+    public final static int BLUE_MASK = 0x000000ff;
+    public final static int PAYLOAD_MASK = 0x00ffffff;
+    // offsets
+    public final static int MAIN_OP_OFFSET = 30;
+    public final static int SUB_OP_OFFSET = 28;
+    public final static int OP_OFFSET = 28;
+    public final static int ID_OFFSET = 24;
+    public final static int CMD_OFFSET = 24;
+    public final static int RED_OFFSET = 16;
+    public final static int GREEN_OFFSET = 8;
+    public final static int BLUE_OFFSET = 0;
+    // MAIN op_codes
+    public final static int REQUEST_MSG = 0x0;
+    public final static int RELAY_MSG = 0x1;
+    public final static int STRIP_MSG = 0x2;
+    public final static int VIDEO_MSG = 0x3;
+    // SUB op_codes
+    public final static int REQUEST_IP_DISCOVERY_MSG = 0x0;
+    public final static int REQUEST_SERVICE_LIST_MSG = 0x1;
+    public final static int REQUEST_GENERIC_MSG = 0x2;
+    public final static int STRIP_DIRECT_MSG = 0x0;
+    public final static int STRIP_FADE_MSG = 0x1;
+    public final static int STRIP_BLINK_MSG = 0x2;
+    public final static int STRIP_RAINBOW_MSG = 0x3;
+    public final static int RELAY_OFF_MSG = 0x0;
+    public final static int RELAY_ON_MSG = 0x1;
+    public final static int RELAY_CHANGE_MSG = 0x2;
+    public final static int VIDEO_GET_LIST_MSG = 0x0;
+    public final static int VIDEO_PLAY_MSG = 0x1;
+    public final static int VIDEO_PLAY_LOOP_MSG = 0x2;
+    public final static int VIDEO_PLAY_EXTRA_MSG = 0x3; // si usano i bit dell id per ulteriori comandi
 
     public UdooDomuShield() {
         super("UDOO DomuShield", "/udoo-domushield/udoo-domushield-manifest.xml");
@@ -66,7 +110,6 @@ public class UdooDomuShield extends Protocol {
     @Override
     public void onStart() throws PluginStartupException {
         try {
-            initialize();
             serial = new SerialHelper(portName, baudRate, dataBits, stopBits, parity, new SerialPortListener() {
 
                 @Override
@@ -77,6 +120,8 @@ public class UdooDomuShield extends Protocol {
             });
             // in this example it reads until a string terminator (default: new line char)
             serial.setChunkTerminator(chunkTerminator);
+
+            initialize();
         } catch (SerialPortException ex) {
             throw new PluginStartupException("Error while creating UDOO DomuShield serial connection. " + ex.getMessage(), ex);
         }
@@ -96,12 +141,22 @@ public class UdooDomuShield extends Protocol {
 
     @Override
     protected void onCommand(Command c) throws UnableToExecuteException {
-        //this method receives freedomotic commands sent on channel app.actuators.protocol.arduinousb.in
-        String message = c.getProperty("udoo-domushield.command");
+
+        int strip = 1;
+        int msg = 0;
+        //this method receives freedomotic commands sent on channel app.actuators.protocol.udoo-domushield.in
+        String command = c.getProperty("udoo-domushield.command");
+        String idCode = c.getProperty("udoo-domushield.idCode");
+        idCode = idCode.substring(idCode.length() - 1, idCode.length());
+        switch (command) {
+            case "TURN_OFF_RELAY":
+                msg = pack(RELAY_MSG, RELAY_OFF_MSG, Integer.valueOf(c.getProperty(idCode)), null, null, 0);
+                break;
+        }
         try {
-            serial.write(message);
+            serial.write(intToByteArray(msg));
         } catch (SerialPortException ex) {
-            throw new UnableToExecuteException("Error writing message '" + message + "' to UDOO DomuShield shield: " + ex.getMessage(), ex);
+            //    throw new UnableToExecuteException("Error writing message '" + message + "' to UDOO DomuShield shield: " + ex.getMessage(), ex);
         }
     }
 
@@ -198,5 +253,32 @@ public class UdooDomuShield extends Protocol {
         }
 
         return s;
+    }
+
+    // This method pack the bits into an integer before send it over udp
+    private int pack(Integer mainOpCode, Integer subOpCode, Integer idCode,
+            Integer r, Integer g, Integer b) {
+        int msg = 0;
+
+        msg |= (mainOpCode << MAIN_OP_OFFSET);
+        msg |= (subOpCode << SUB_OP_OFFSET);
+
+        if (idCode != null) {
+            msg |= (idCode << ID_OFFSET);
+        }
+
+        if (r != null) {
+            msg |= (r << RED_OFFSET);
+        }
+
+        if (g != null) {
+            msg |= (g << GREEN_OFFSET);
+        }
+
+        if (b != null) {
+            msg |= (b << BLUE_OFFSET);
+        }
+
+        return msg;
     }
 }

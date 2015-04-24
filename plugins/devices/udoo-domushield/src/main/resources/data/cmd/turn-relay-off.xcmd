@@ -1,13 +1,14 @@
 <command>
-    <name>Arduino USB: Turn led OFF</name>
-    <receiver>app.actuators.protocol.arduinousb.in</receiver>
-    <description>turns off the Arduino USB board led</description>
+    <name>Turn OFF relay on UDOO DomuShield</name>
+    <receiver>app.actuators.protocol.udoo-domushield.in</receiver>
+    <description>Turns OFF relay1 on UDOO DomuShield</description>
     <hardwareLevel>true</hardwareLevel>
     <delay>0</delay>
     <timeout>0</timeout>
     <properties>
         <properties>
-            <property name="arduinousb.message" value="b"/>
+            <property name="udoo-domushield.command" value="TURN_OFF_RELAY"/>
+            <property name="udoo-domushield.idCode" value="@owner.object.address"/>
         </properties>
     </properties>
 </command>
