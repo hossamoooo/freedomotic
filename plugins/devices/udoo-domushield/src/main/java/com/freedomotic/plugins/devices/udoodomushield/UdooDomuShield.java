@@ -44,7 +44,7 @@ public class UdooDomuShield extends Protocol {
     private Integer dataBits = configuration.getIntProperty("serial.databits", 8);
     private Integer parity = configuration.getIntProperty("serial.parity", 0);
     private Integer stopBits = configuration.getIntProperty("serial.stopbits", 1);
-    private String chunkTerminator = configuration.getStringProperty("chunk.terminator", "\n");
+    private String chunkTerminator = configuration.getStringProperty("chunk.terminator", "8#59;");
     private String dataDelimiter = configuration.getStringProperty("data-delimiter", ",");
     private String valueDelimiter = configuration.getStringProperty("value-delimiter", "#");
     private SerialHelper serial;
@@ -54,7 +54,7 @@ public class UdooDomuShield extends Protocol {
     String[] receivedMessage = null;
     String[] currentObject = null;
     String readValue = null;
-    HashMap<Integer, EkironjObject> objects = null;
+    HashMap<Integer, EkironjObject> objects;
     ProtocolRead event = null;
     /**
      * These values are use to encode and decode an easy custom protocol
@@ -114,8 +114,10 @@ public class UdooDomuShield extends Protocol {
 
                 @Override
                 public void onDataAvailable(String data) {
-                    LOG.log(Level.CONFIG, "UDOO DomuShield received: {0}", data);
-                    sendChanges(data);
+                    LOG.log(Level.INFO, "UDOO DomuShield received: {0}", data);
+                    if (isValidData(data)) {
+                        sendChanges(data);
+                    }
                 }
             });
             // in this example it reads until a string terminator (default: new line char)
@@ -162,26 +164,26 @@ public class UdooDomuShield extends Protocol {
 
     private void initialize() {
 
-        EkironjObject obj = new EkironjObject("humSensor", "sensor", "Hygrometer", "", "H");
+        objects = new HashMap<Integer, EkironjObject>();
+        EkironjObject obj = new EkironjObject("humSensor", "sensor", "Hygrometer", "-", "H");
         objects.put(0, obj);
-        obj = new EkironjObject("lumSensor", "sensor", "Light Sensor", "", "L");
+        obj = new EkironjObject("lumSensor", "sensor", "Light Sensor", "-", "L");
         objects.put(1, obj);
-        obj = new EkironjObject("tempSensor", "sensor", "Thermometer", "", "T");
+        obj = new EkironjObject("tempSensor", "sensor", "Thermometer", "-", "T");
         objects.put(2, obj);
-        obj = new EkironjObject("relay1", "actuator", "Light", "", "R1");
+        obj = new EkironjObject("relay1", "actuator", "Light", "-", "R1");
         objects.put(3, obj);
-        obj = new EkironjObject("relay2", "actuator", "Light", "", "R2");
+        obj = new EkironjObject("relay2", "actuator", "Light", "-", "R2");
         objects.put(4, obj);
     }
 
     private void sendChanges(String data) {
 
         // remove '\r' and '\n' at the end of the string and split data read
-        receivedMessage = data.substring(0, data.length() - 2).split(dataDelimiter);
-
+        receivedMessage = data.substring(0, data.length() - 1).split(dataDelimiter);
         for (int i = 0; i < receivedMessage.length; i++) {
             currentObject = receivedMessage[i].split(valueDelimiter);
-            readValue = currentObject[i];
+            readValue = currentObject[1];
             if (isChangedValue(i, readValue)) {
                 event = new ProtocolRead(this, "udoo-domushield", objects.get(i).getAddress());
                 //         if (receivedStatus.equalsIgnoreCase("on")) {
@@ -219,11 +221,20 @@ public class UdooDomuShield extends Protocol {
      */
     private boolean isChangedValue(int objectIndex, String readValue) {
 
-        if (objects.get(objectIndex).getStoredValue().equalsIgnoreCase(readValue)) {
+        if (!objects.get(objectIndex).getStoredValue().equalsIgnoreCase(readValue)) {
             return true;
         } else {
             return false;
         }
+    }
+
+    private boolean isValidData(String data) {
+        if (data.length() > 19) {
+            if (data.substring(data.length() - 1, data.length()).equalsIgnoreCase(";")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private byte[] intToByteArray(int integer) {

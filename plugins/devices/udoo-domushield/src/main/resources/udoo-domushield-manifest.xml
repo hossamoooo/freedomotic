@@ -8,7 +8,7 @@
         <property name="protocol.name" value="udoo-domushield"/>
 
     <!-- SERIAL PORT PARAMETERS --> 
-        <property name="serial.port" value="COM5"/>       
+        <property name="serial.port" value="COM6"/>       
         <property name="serial.baudrate" value="9600"/>
         <property name="serial.databits" value="8"/>
         <property name="serial.parity" value="0"/>

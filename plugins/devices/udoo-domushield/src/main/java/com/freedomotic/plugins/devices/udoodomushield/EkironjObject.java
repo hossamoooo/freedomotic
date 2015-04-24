@@ -25,11 +25,11 @@ package com.freedomotic.plugins.devices.udoodomushield;
  */
 public class EkironjObject {
 
-    String name = null;
-    String type = null;
-    String freedomoticClass = null;
-    String storedValue = null;
-    String address = null;
+    String name;
+    String type;
+    String freedomoticClass;
+    String storedValue;
+    String address;
 
     EkironjObject(String name, String type, String freedomoticClass, String storedValue, String address) {
 
