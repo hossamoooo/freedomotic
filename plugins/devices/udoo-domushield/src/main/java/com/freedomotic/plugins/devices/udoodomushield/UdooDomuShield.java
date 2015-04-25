@@ -154,12 +154,16 @@ public class UdooDomuShield extends Protocol {
             case "TURN_OFF_RELAY":
                 msg = pack(RELAY_MSG, RELAY_OFF_MSG, Integer.valueOf(c.getProperty(idCode)), null, null, 0);
                 break;
+            case "TURN_ON_RELAY":
+                msg = pack(RELAY_MSG, RELAY_ON_MSG, Integer.valueOf(c.getProperty(idCode)), null, null, 1);
+                break;
         }
-        try {
-            serial.write(intToByteArray(msg));
-        } catch (SerialPortException ex) {
-            //    throw new UnableToExecuteException("Error writing message '" + message + "' to UDOO DomuShield shield: " + ex.getMessage(), ex);
-        }
+        // try {
+        //   serial.write(intToByteArray(msg));
+        // } catch (SerialPortException ex) {
+        //    throw new UnableToExecuteException("Error writing message '" + message + "' to UDOO DomuShield shield: " + ex.getMessage(), ex);
+        // }
+        System.out.println("string to send " + msg);
     }
 
     private void initialize() {
@@ -195,6 +199,7 @@ public class UdooDomuShield extends Protocol {
                 event.addProperty("object.class", objects.get(i).getFreedomoticClass());
                 event.addProperty("object.name", "Udoo " + objects.get(i).getName());
                 event.addProperty("object.addres", objects.get(i).getAddress());
+                event.addProperty("autodiscovery.allow-clones", "false");
                 objects.get(i).setStoredValue(readValue);
                 this.notifyEvent(event);
             }

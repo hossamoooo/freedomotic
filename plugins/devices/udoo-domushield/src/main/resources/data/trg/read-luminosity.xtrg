@@ -8,7 +8,7 @@
                 <logical>SET</logical>
                 <attribute>behaviorValue</attribute>
                 <operand>EQUALS</operand>
-                <value>@event.read.value</value>
+                <value>= behaviorValue=Math.round(@event.read.value*10)</value>
             </statement>
         </payload>
     </payload>
