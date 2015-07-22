@@ -1,0 +1,9 @@
+<config>
+    <properties>
+        <property name="description" value="Weather Forecasts from OpenWeatherMap"/>
+        <property name="category" value="weather"/>
+        <property name="short-name" value="weather-forecasts"/>
+    </properties>
+</config>
+
+                
