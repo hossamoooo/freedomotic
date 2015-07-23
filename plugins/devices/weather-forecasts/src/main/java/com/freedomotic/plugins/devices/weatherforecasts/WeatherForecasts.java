@@ -21,6 +21,7 @@ package com.freedomotic.plugins.devices.weatherforecasts;
 
 import com.freedomotic.api.EventTemplate;
 import com.freedomotic.api.Protocol;
+import com.freedomotic.events.ProtocolRead;
 import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.things.EnvObjectLogic;
 import com.freedomotic.things.ThingRepository;
@@ -38,13 +39,17 @@ public class WeatherForecasts
         extends Protocol {
 
     private static final Logger LOG = Logger.getLogger(WeatherForecasts.class.getName());
-    final int POLLING_WAIT;
+    private final int POLLING_WAIT;
+    final String UNITS;
+    final String CITY_NAME;
     private OpenWeatherMap owm;
 
     public WeatherForecasts() {
         super("Weather Forecasts", "/weather-forecasts/weather-forecasts-manifest.xml");
-        POLLING_WAIT = configuration.getIntProperty("time-between-reads", 2000);
-        setPollingWait(POLLING_WAIT); //millisecs interval between hardware device status reads
+        POLLING_WAIT = configuration.getIntProperty("time-between-reads", 50000);
+        UNITS = configuration.getStringProperty("units", "metric");
+        CITY_NAME = configuration.getStringProperty("city-name", "Rome");
+        setPollingWait(POLLING_WAIT);
     }
 
     @Override
@@ -70,7 +75,7 @@ public class WeatherForecasts
     protected void onStart() {
         // declaring object of "OpenWeatherMap" class
         owm = new OpenWeatherMap("");
-        owm.setUnits(OpenWeatherMap.Units.METRIC);
+        owm.setUnits(OpenWeatherMap.Units.valueOf(UNITS));
         LOG.info("Weather Forecasts plugin is started");
     }
 
@@ -80,10 +85,7 @@ public class WeatherForecasts
     }
 
     @Override
-    protected void onCommand(Command c)
-            throws IOException, UnableToExecuteException {
-        LOG.info("Weather Forecasts plugin receives a command called " + c.getName() + " with parameters "
-                + c.getProperties().toString());
+    protected void onCommand(Command c) {
     }
 
     @Override
@@ -101,25 +103,44 @@ public class WeatherForecasts
     private void retrieveData()
             throws IOException, MalformedURLException, JSONException {
 
-        // getting current weather data for the "London" city
-        CurrentWeather cwd = owm.currentWeatherByCityName("Rome");
+        CurrentWeather cwd = owm.currentWeatherByCityName(CITY_NAME);
 
-        // checking data retrieval was successful or not
+        // checking if data retrieval was successful or not
         if (cwd.isValid()) {
 
-            // checking if city name is available
+            //building the event
+            ProtocolRead event = new ProtocolRead(this, "weather-forecasts", cwd.getCityName());
+            //adding some optional information to the event
             if (cwd.hasCityName()) {
-                //printing city name from the retrieved data
-                System.out.println("City: " + cwd.getCityName());
+                event.getPayload().addStatement("city-name", cwd.getCityName());
             }
-
-            // checking if max. temp. and min. temp. is available
-            if (cwd.getMainInstance().hasMaxTemperature() && cwd.getMainInstance().hasMinTemperature()) {
-                // printing the max./min. temperature
-                
-                System.out.println("Temperature: " + cwd.getMainInstance().getMaxTemperature()
-                        + "/" + cwd.getMainInstance().getMinTemperature() + "\'F");
+            if (cwd.getMainInstance().hasTemperature()) {
+                event.getPayload().addStatement("temperature", String.valueOf(cwd.getMainInstance().getTemperature()));
             }
+            if (cwd.getMainInstance().hasMaxTemperature()) {
+                event.getPayload().addStatement("max-temperature", String.valueOf(cwd.getMainInstance().getMaxTemperature()));
+            }
+            if (cwd.getMainInstance().hasMinTemperature()) {
+                event.getPayload().addStatement("min-temperature", String.valueOf(cwd.getMainInstance().getMinTemperature()));
+            }
+            if (cwd.getMainInstance().hasPressure()) {
+                event.getPayload().addStatement("pressure", String.valueOf(cwd.getMainInstance().getPressure()));
+            }
+            if (cwd.getMainInstance().hasHumidity()) {
+                event.getPayload().addStatement("humidity", String.valueOf(cwd.getMainInstance().getHumidity()));
+            }
+            if (cwd.getSysInstance().hasSunriseTime()) {
+                event.getPayload().addStatement("sunrise-time", String.valueOf(cwd.getSysInstance().getSunriseTime()));
+            }
+            if (cwd.getSysInstance().hasSunsetTime()) {
+                event.getPayload().addStatement("sunset-time", String.valueOf(cwd.getSysInstance().getSunsetTime()));
+            }
+            System.out.println("Raw: "+cwd.getRawResponse());
+            System.out.println("Evento: "+event.getPayload().getStatements().toString());
+            //publish the event on the messaging bus
+            notifyEvent(event);
+            
+           
         }
     }
 }
