@@ -65,9 +65,9 @@ public class WeatherForecasts
         try {
             retrieveData();
         } catch (IOException ex) {
-            Logger.getLogger(WeatherForecasts.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "IOException retrieving data ", ex);
         } catch (JSONException ex) {
-            Logger.getLogger(WeatherForecasts.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "JSONException retrieving data ", ex);
         }
     }
 
@@ -76,12 +76,12 @@ public class WeatherForecasts
         // declaring object of "OpenWeatherMap" class
         owm = new OpenWeatherMap("");
         owm.setUnits(OpenWeatherMap.Units.valueOf(UNITS));
-        LOG.info("Weather Forecasts plugin is started");
+        LOG.log(Level.INFO, "Weather Forecasts plugin is started");
     }
 
     @Override
     protected void onStop() {
-        LOG.info("Weather Forecasts plugin is stopped ");
+        LOG.log(Level.INFO, "Weather Forecasts plugin is stopped ");
     }
 
     @Override
@@ -110,9 +110,21 @@ public class WeatherForecasts
 
             //building the event
             ProtocolRead event = new ProtocolRead(this, "weather-forecasts", cwd.getCityName());
-            //adding some optional information to the event
+            //adding some information to the event
             if (cwd.hasCityName()) {
                 event.getPayload().addStatement("city-name", cwd.getCityName());
+            }
+            if (cwd.hasWeatherInstance()) {
+                event.getPayload().addStatement("conditions", cwd.getWeatherInstance(0).getWeatherName());
+            }
+            if (cwd.hasWindInstance() && cwd.getWindInstance().hasWindSpeed()) {
+                event.getPayload().addStatement("wind-speed", String.valueOf(cwd.getWindInstance().getWindSpeed()));
+            }
+            if (cwd.hasWindInstance() && cwd.getWindInstance().hasWindDegree()) {
+                event.getPayload().addStatement("wind-degree", String.valueOf(cwd.getWindInstance().getWindDegree()));
+            }
+            if (cwd.hasRainInstance() && cwd.getRainInstance().hasRain()) {
+                event.getPayload().addStatement("rain", String.valueOf(cwd.getRainInstance().getRain()));
             }
             if (cwd.getMainInstance().hasTemperature()) {
                 event.getPayload().addStatement("temperature", String.valueOf(cwd.getMainInstance().getTemperature()));
@@ -135,12 +147,8 @@ public class WeatherForecasts
             if (cwd.getSysInstance().hasSunsetTime()) {
                 event.getPayload().addStatement("sunset-time", String.valueOf(cwd.getSysInstance().getSunsetTime()));
             }
-            System.out.println("Raw: "+cwd.getRawResponse());
-            System.out.println("Evento: "+event.getPayload().getStatements().toString());
             //publish the event on the messaging bus
             notifyEvent(event);
-            
-           
         }
     }
 }
