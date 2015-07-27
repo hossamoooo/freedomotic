@@ -9,6 +9,8 @@
 package com.myhome.fcrisciani.connector;
 
 import com.freedomotic.plugins.devices.openwebnet.OpenWebNet;
+import com.freedomotic.events.ProtocolRead;
+import com.freedomotic.plugins.devices.openwebnet.OWNMonitorThread;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

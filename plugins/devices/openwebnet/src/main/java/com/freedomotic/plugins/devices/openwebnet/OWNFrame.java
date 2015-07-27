@@ -135,11 +135,8 @@ public class OWNFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void SendFrameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendFrameButtonActionPerformed
-        try {
-            pluginReference.myPlant.sendCommandAsync((String) jTextOwnFrame.getText(), 1);
-        } catch (MalformedCommandOPEN ex) {
-            OpenWebNet.LOG.log(Level.SEVERE, "Malformed frame not sent. " + ex.getLocalizedMessage(), ex);
-        }
+        pluginReference.ownMT.sendCommand((String) jTextOwnFrame.getText(), 1);
+
     }//GEN-LAST:event_SendFrameButtonActionPerformed
 
     private void jTextOwnFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextOwnFrameActionPerformed
