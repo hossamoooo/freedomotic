@@ -4,19 +4,20 @@
  */
 package com.freedomotic.api;
 
-import com.freedomotic.app.AppConfig;
+import com.freedomotic.settings.AppConfig;
+import com.freedomotic.bus.BusService;
 import com.freedomotic.core.ResourcesManager;
 import com.freedomotic.environment.EnvironmentRepository;
 import com.freedomotic.plugins.ClientStorage;
 import com.freedomotic.plugins.PluginsManager;
-import com.freedomotic.reactions.CommandPersistence;
 import com.freedomotic.reactions.ReactionPersistence;
-import com.freedomotic.reactions.TriggerPersistence;
+import com.freedomotic.reactions.TriggerRepository;
 import com.freedomotic.security.Auth;
 import com.freedomotic.i18n.I18n;
-import com.freedomotic.nlp.NlpCommands;
-import com.freedomotic.things.ThingsFactory;
-import com.freedomotic.things.ThingsRepository;
+import com.freedomotic.nlp.NlpCommand;
+import com.freedomotic.reactions.CommandRepository;
+import com.freedomotic.things.ThingFactory;
+import com.freedomotic.things.ThingRepository;
 import com.google.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
@@ -33,17 +34,18 @@ import java.util.Collection;
 class APIStandardImpl implements API {
 
     private final EnvironmentRepository environments;
-    private final ThingsRepository things;
+    private final ThingRepository things;
     private final ClientStorage clientStorage;
     private final AppConfig config;
     private final Auth auth;
     private final I18n i18n;
     private final PluginsManager plugManager;
-    private TriggerPersistence triggers;
-    private CommandPersistence commands;
+    private TriggerRepository triggers;
+    private CommandRepository commands;
     private ReactionPersistence reactions;
-    private final ThingsFactory thingsFactory;
-    private NlpCommands nlpCommands;
+    private final ThingFactory thingsFactory;
+    private NlpCommand nlpCommands;
+    private final BusService busService;
 
     /**
      *
@@ -59,18 +61,19 @@ class APIStandardImpl implements API {
      */
     @Inject
     public APIStandardImpl(
+            BusService busService,
             EnvironmentRepository environment,
-            ThingsRepository things,
-            ThingsFactory thingsFactory,
+            ThingRepository things,
+            ThingFactory thingsFactory,
             ClientStorage clientStorage,
             AppConfig config,
             Auth auth,
             I18n i18n,
             PluginsManager plugManager,
-            TriggerPersistence triggerPersistence,
-            CommandPersistence commands,
+            TriggerRepository triggerPersistence,
+            CommandRepository commands,
             ReactionPersistence reactions,
-            NlpCommands nlpCommands) {
+            NlpCommand nlpCommands) {
         this.environments = environment;
         this.things = things;
         this.clientStorage = clientStorage;
@@ -83,6 +86,7 @@ class APIStandardImpl implements API {
         this.reactions = reactions;
         this.thingsFactory = thingsFactory;
         this.nlpCommands = nlpCommands;
+        this.busService = busService;
     }
 
     /**
@@ -160,17 +164,17 @@ class APIStandardImpl implements API {
     }
 
     @Override
-    public TriggerPersistence triggers() {
+    public TriggerRepository triggers() {
         return triggers;
     }
 
     @Override
-    public ThingsRepository things() {
+    public ThingRepository things() {
         return things;
     }
 
     @Override
-    public CommandPersistence commands() {
+    public CommandRepository commands() {
         return commands;
     }
 
@@ -180,13 +184,18 @@ class APIStandardImpl implements API {
     }
 
     @Override
-    public ThingsFactory thingsFactory() {
+    public ThingFactory thingsFactory() {
         return thingsFactory;
     }
 
     @Override
-    public NlpCommands nlpCommands() {
+    public NlpCommand nlpCommands() {
         return nlpCommands;
+    }
+
+    @Override
+    public BusService bus() {
+        return busService;
     }
 
 }

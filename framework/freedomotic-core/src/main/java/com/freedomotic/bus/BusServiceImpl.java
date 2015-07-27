@@ -20,7 +20,6 @@
 package com.freedomotic.bus;
 
 import com.freedomotic.api.EventTemplate;
-import com.freedomotic.app.AppConfig;
 import com.freedomotic.app.Freedomotic;
 import com.freedomotic.app.Profiler;
 import com.freedomotic.reactions.Command;
@@ -37,6 +36,7 @@ import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
+import javax.jms.Topic;
 import org.apache.activemq.command.ActiveMQQueue;
 
 /**
@@ -47,25 +47,28 @@ import org.apache.activemq.command.ActiveMQQueue;
  * @author Freedomotic Team
  *
  */
-class BusServiceImpl extends LifeCycle implements BusService {
+final class BusServiceImpl extends LifeCycle implements BusService {
 
     private static final Logger LOG = Logger.getLogger(BusServiceImpl.class.getName());
 
-    private AppConfig config;
+    //private AppConfig config;
     private BusBroker brokerHolder;
     private BusConnection connectionHolder;
-    private DestinationRegistry destination;
     private Session receiveSession;
     private Session sendSession;
     private Session unlistenedSession;
     protected MessageProducer messageProducer;
-    
+
     @Inject
-    public BusServiceImpl(AppConfig config){
-        this.config = config;
+    public BusServiceImpl() {
+        //this.config = config;
         if (BootStatus.getCurrentStatus() == BootStatus.STOPPED) {
-           init();
+            init();
+            if (sendSession == null) {
+                throw new IllegalStateException("Messaging bus has not yet a valid send session");
+            }
         }
+        LOG.info("Messaging bus is " + BootStatus.getCurrentStatus().name());
     }
 
     /**
@@ -78,15 +81,11 @@ class BusServiceImpl extends LifeCycle implements BusService {
 
         BootStatus.setCurrentStatus(BootStatus.BOOTING);
 
-        //config = Freedomotic.INJECTOR.getInstance(AppConfig.class);
-
         brokerHolder = new BusBroker();
         brokerHolder.init();
 
         connectionHolder = new BusConnection();
         connectionHolder.init();
-
-        destination = new DestinationRegistry(this);
 
         receiveSession = createSession();
         // an unlistened session
@@ -95,10 +94,6 @@ class BusServiceImpl extends LifeCycle implements BusService {
         sendSession = createSession();
         // null parameter creates a producer with no specified destination
         messageProducer = createMessageProducer();
-        
-        if (sendSession == null){
-            throw new IllegalStateException("Messaging bus has not yet a valid send session");
-        }
 
         BootStatus.setCurrentStatus(BootStatus.STARTED);
     }
@@ -106,14 +101,14 @@ class BusServiceImpl extends LifeCycle implements BusService {
     private MessageProducer createMessageProducer() throws JMSException {
 
         // null parameter creates a producer with no specified destination
-        final MessageProducer createProducer = sendSession.createProducer(null);
+        final MessageProducer createdProducer = sendSession.createProducer(null);
 
         // configure
-        createProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-        final int tiemToLive = config.getIntProperty("KEY_MESSAGES_TTL", 1000);
-        createProducer.setTimeToLive(tiemToLive);
+        createdProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        //final int tiemToLive = config.getIntProperty("KEY_MESSAGES_TTL", 1000);
+        //createProducer.setTimeToLive(tiemToLive);
 
-        return createProducer;
+        return createdProducer;
     }
 
     /**
@@ -121,6 +116,7 @@ class BusServiceImpl extends LifeCycle implements BusService {
      *
      * @throws java.lang.Exception
      */
+    @Override
     protected void stop() throws Exception {
 
         BootStatus.setCurrentStatus(BootStatus.STOPPING);
@@ -160,50 +156,15 @@ class BusServiceImpl extends LifeCycle implements BusService {
         session.close();
     }
 
-    private Session createSession() throws Exception {
-
+    @Override
+    public Session createSession() throws Exception {
         return connectionHolder.createSession();
+
     }
 
     private MessageProducer getMessageProducer() {
 
         return messageProducer;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public BusDestination registerCommandQueue(String queueName)
-            throws JMSException {
-
-        return destination.registerCommandQueue(queueName);
-
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public BusDestination registerEventQueue(String queueName)
-            throws JMSException {
-
-        return destination.registerEventQueue(queueName);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return
-     */
-    @Override
-    public BusDestination registerTopic(String queueName) throws JMSException {
-
-        return destination.registerTopic(queueName);
     }
 
     /**
@@ -245,12 +206,19 @@ class BusServiceImpl extends LifeCycle implements BusService {
      */
     @Override
     public void reply(Command command, Destination destination, String correlationID) {
+        if (destination == null) {
+            throw new IllegalArgumentException("Null reply destination "
+                    + "for command " + command.getName() + " "
+                    + "(reply timeout: " + command.getReplyTimeout() + ")");
+        }
         try {
             ObjectMessage msg = createObjectMessage();
             msg.setObject(command);
+            msg.setJMSDestination(destination);
             msg.setJMSCorrelationID(correlationID);
             msg.setStringProperty("provenance", Freedomotic.INSTANCE_ID);
-            getMessageProducer().send(destination, msg);
+            LOG.log(Level.CONFIG, "Sending reply to command ''{0}'' on {1}", new Object[]{command.getName(), msg.getJMSDestination()});
+            getMessageProducer().send(destination, msg); //Always pass the destination, otherwise it complains
             Profiler.incrementSentReplies();
         } catch (JMSException jmse) {
             LOG.severe(Freedomotic.getStackTraceInfo(jmse));
@@ -262,106 +230,110 @@ class BusServiceImpl extends LifeCycle implements BusService {
      */
     @Override
     public Command send(final Command command) {
+        if (command == null) {
+            throw new IllegalArgumentException("Cannot send a null command");
+        }
+        if (command.getReceiver() == null || command.getReceiver().isEmpty()) {
+            throw new IllegalArgumentException("Cannot send command '" + command + "', the receiver channel is not specified");
+        }
+
+        LOG.log(Level.INFO, "Sending command ''{0}'' to destination ''{1}'' with reply timeout {2}", new Object[]{command.getName(), command.getReceiver(), command.getReplyTimeout()});
 
         try {
-
             ObjectMessage msg = createObjectMessage();
-
             msg.setObject(command);
             msg.setStringProperty("provenance", Freedomotic.INSTANCE_ID);
 
-            Queue destination = new ActiveMQQueue(command.getReceiver());
-
+            Queue currDestination = new ActiveMQQueue(command.getReceiver());
             if (command.getReplyTimeout() > 0) {
-
-                // we have to wait an execution reply for an hardware device or
-                // an external client
-                final Session unlistenedSession = this.getUnlistenedSession();
-                TemporaryQueue temporaryQueue = unlistenedSession
-                        .createTemporaryQueue();
-
-                msg.setJMSReplyTo(temporaryQueue);
-
-                // a temporary consumer on a temporary queue
-                MessageConsumer temporaryConsumer = unlistenedSession
-                        .createConsumer(temporaryQueue);
-
-                final MessageProducer messageProducer = this.getMessageProducer();
-                messageProducer.send(destination, msg);
-
-                Profiler.incrementSentCommands();
-
-                // the receive() call is blocking
-                LOG.config("Send and await reply to command '"
-                        + command.getName() + "' for "
-                        + command.getReplyTimeout() + "ms");
-
-                Message jmsResponse = temporaryConsumer.receive(command.getReplyTimeout());
-
-                //cleanup after receiving
-                temporaryConsumer.close();
-                //TODO: commented as sometimes genenerates a "cannot publish on deleted queue" exception
-                //check n the documentation if a temporary queue with no consumers
-                //is automatically deleted
-                //TODO: enable this: temporaryQueue.delete();
-
-                if (jmsResponse != null) {
-                    // TODO unchecked cast!
-                    ObjectMessage objMessage = (ObjectMessage) jmsResponse;
-
-                    // a command is sent, we expect a command as reply
-                    // TODO unchecked cast!
-                    Command reply = (Command) objMessage.getObject();
-
-                    LOG.config("Reply to command '"
-                            + command.getName() + "' is received. Result property inside this command is "
-                            + reply.getProperty("result")
-                            + ". It is used to pass data to the next command, can be empty or even null.");
-
-                    Profiler.incrementReceivedReplies();
-
-                    return reply;
-
-                } else {
-
-                    LOG.config("Command '" + command.getName()
-                            + "' timed out after " + command.getReplyTimeout()
-                            + "ms");
-
-                    Profiler.incrementTimeoutedReplies();
-                }
-
-                // mark as failed
-                command.setExecuted(false);
-
-                // returns back the original inaltered command
-                return command;
-
+                return sendAndWaitReply(command, currDestination, msg);
             } else {
-
-                // send the message immediately without creating temporary
-                // queues and consumers on it
-                // this increments perfornances if no reply is expected
-                final MessageProducer messageProducer = this.getMessageProducer();
-                LOG.log(Level.CONFIG, "Send command ''{0}'' (no reply expected)", command.getName());
-                messageProducer.send(destination, msg);
-
-                Profiler.incrementSentCommands();
-
-                command.setExecuted(true);
-
-                // always say it is executed (it's not sure but the caller is
-                // not interested: best effort)
-                return command;
+                return sendAndForget(command, currDestination, msg);
             }
         } catch (JMSException ex) {
-
             LOG.severe(Freedomotic.getStackTraceInfo(ex));
-
             command.setExecuted(false);
-
             return command;
         }
+    }
+
+    private Command sendAndForget(final Command command, Queue currDestination, ObjectMessage msg) throws JMSException {
+        // send the message immediately without creating temporary
+        // queues and consumers on it
+        // this increments perfornances if no reply is expected
+        final MessageProducer messageProducer = this.getMessageProducer();
+        messageProducer.send(currDestination, msg);
+
+        Profiler.incrementSentCommands();
+
+        command.setExecuted(true);
+
+        // always say it is executed (it's not sure but the caller is
+        // not interested: best effort)
+        return command;
+    }
+
+    private Command sendAndWaitReply(final Command command, Queue currDestination, ObjectMessage msg) throws JMSException {
+        // we have to wait an execution reply for an hardware device or
+        // an external client
+        final Session currUnlistenedSession = this.getUnlistenedSession();
+        TemporaryQueue temporaryQueue = currUnlistenedSession
+                .createTemporaryQueue();
+
+        msg.setJMSReplyTo(temporaryQueue);
+
+        // a temporary consumer on a temporary queue
+        MessageConsumer temporaryConsumer = currUnlistenedSession
+                .createConsumer(temporaryQueue);
+
+        final MessageProducer currMessageProducer = this.getMessageProducer();
+        currMessageProducer.send(currDestination, msg);
+
+        Profiler.incrementSentCommands();
+
+        // the receive() call is blocking
+        LOG.log(Level.CONFIG, "Send and await reply to command ''{0}'' for {1}ms",
+                new Object[]{command.getName(), command.getReplyTimeout()});
+
+        Message jmsResponse = temporaryConsumer.receive(command.getReplyTimeout());
+
+        //cleanup after receiving
+        //temporaryConsumer.close();
+        //temporaryQueue.delete();
+        //TODO: commented as sometimes genenerates a "cannot publish on deleted queue" exception
+        //check n the documentation if a temporary queue with no consumers
+        //is automatically deleted
+        if (jmsResponse != null) {
+            // TODO unchecked cast!
+            ObjectMessage objMessage = (ObjectMessage) jmsResponse;
+
+            // a command is sent, we expect a command as reply
+            // TODO unchecked cast!
+            Command reply = (Command) objMessage.getObject();
+
+            LOG.config("Reply to command '"
+                    + command.getName() + "' is received. Result property inside this command is "
+                    + reply.getProperty("result")
+                    + ". It is used to pass data to the next command, can be empty or even null.");
+
+            Profiler.incrementReceivedReplies();
+
+            return reply;
+
+        } else {
+
+            LOG.config("Command '" + command.getName()
+                    + "' timed out after " + command.getReplyTimeout()
+                    + "ms");
+
+            Profiler.incrementTimeoutedReplies();
+        }
+
+        // mark as failed
+        command.setExecuted(false);
+
+        // returns back the original inaltered command
+        return command;
     }
 
     /**
@@ -369,7 +341,6 @@ class BusServiceImpl extends LifeCycle implements BusService {
      */
     @Override
     public void send(EventTemplate ev) {
-
         send(ev, ev.getDefaultDestination());
     }
 
@@ -378,31 +349,26 @@ class BusServiceImpl extends LifeCycle implements BusService {
      */
     @Override
     public void send(final EventTemplate ev, final String to) {
+        //LOG.log(Level.INFO, "Sending event ''{0}'' to destination ''{1}''", new Object[]{ev.toString(), to});
+        if (ev == null) {
+            throw new IllegalArgumentException("Cannot send a null event");
+        }
 
-        // TODO should this null check be here?
-        if (ev != null) {
+        try {
 
-            try {
+            ObjectMessage msg = createObjectMessage();
 
-                ObjectMessage msg = createObjectMessage();
+            msg.setObject(ev);
+            msg.setStringProperty("provenance", Freedomotic.INSTANCE_ID);
 
-                msg.setObject(ev);
-                msg.setStringProperty("provenance", Freedomotic.INSTANCE_ID);
+            // Generate a new topic if not already exists, otherwire returns the old topic instance
+            Topic topic = getReceiveSession().createTopic("VirtualTopic." + to);
+            getMessageProducer().send(topic, msg);
+            Profiler.incrementSentEvents();
 
-                // a consumer consumes on
-                // Consumer.A_PROGRESSIVE_INTEGER_ID.VirtualTopic.
-                BusDestination busDestination = this.registerTopic(to);
-                Destination tmpTopic = busDestination.getDestination();
+        } catch (JMSException ex) {
 
-                final MessageProducer messageProducer = this.getMessageProducer();
-                messageProducer.send(tmpTopic, msg);
-
-                Profiler.incrementSentEvents();
-
-            } catch (JMSException ex) {
-
-                LOG.severe(Freedomotic.getStackTraceInfo(ex));
-            }
+            LOG.severe(Freedomotic.getStackTraceInfo(ex));
         }
     }
 }

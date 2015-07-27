@@ -23,19 +23,19 @@ import com.freedomotic.app.Freedomotic;
 import com.freedomotic.persistence.Repository;
 import com.freedomotic.persistence.FreedomXStream;
 import com.freedomotic.persistence.XmlPreprocessor;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import com.thoughtworks.xstream.XStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -43,7 +43,9 @@ import java.util.logging.Logger;
  */
 public class ReactionPersistence implements Repository<Reaction> {
 
-    private static final List<Reaction> list = new CopyOnWriteArrayList<Reaction>(); //for persistence purposes. ELEMENTS CANNOT BE MODIFIED OUTSIDE THIS CLASS
+    private static final Logger LOG = LoggerFactory.getLogger(ReactionPersistence.class.getName());
+
+    private static final List<Reaction> list = new ArrayList<Reaction>(); //for persistence purposes. ELEMENTS CANNOT BE MODIFIED OUTSIDE THIS CLASS
 
     public ReactionPersistence() {
     }
@@ -54,22 +56,21 @@ public class ReactionPersistence implements Repository<Reaction> {
      */
     public static void saveReactions(File folder) {
         if (list.isEmpty()) {
-            LOG.log(Level.WARNING, "There are no reactions to persist, {0} will not be altered.", folder.getAbsolutePath());
+            LOG.warn("There are no reactions to persist, {} will not be altered.", folder.getAbsolutePath());
 
             return;
         }
 
         if (!folder.isDirectory()) {
-            LOG.log(Level.WARNING, "{0} is not a valid reaction folder. Skipped", folder.getAbsoluteFile());
+            LOG.warn("{} is not a valid reaction folder. Skipped", folder.getAbsoluteFile());
 
             return;
         }
 
-        XStream xstream = FreedomXStream.getXstream();
         deleteReactionFiles(folder);
 
         try {
-            LOG.log(Level.INFO, "Saving reactions to file in {0}", folder.getAbsolutePath());
+            LOG.info("Saving reactions to file in {}", folder.getAbsolutePath());
 
             for (Reaction reaction : list) {
                 String uuid = reaction.getUuid();
@@ -79,27 +80,23 @@ public class ReactionPersistence implements Repository<Reaction> {
                 }
 
                 String fileName = reaction.getUuid() + ".xrea";
-                File file= new File(folder + "/" + fileName);
+                File file = new File(folder + "/" + fileName);
                 FreedomXStream.toXML(reaction, file);
             }
         } catch (Exception e) {
-            LOG.info(e.getLocalizedMessage());
-            LOG.severe(Freedomotic.getStackTraceInfo(e));
+            LOG.error("Error while saving reations", e);
         }
     }
 
     private static void deleteReactionFiles(File folder) {
-        File[] files = folder.listFiles();
+        File[] files;
 
         // This filter only returns object files
         FileFilter objectFileFileter
                 = new FileFilter() {
+                    @Override
                     public boolean accept(File file) {
-                        if (file.isFile() && file.getName().endsWith(".xrea")) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return file.isFile() && file.getName().endsWith(".xrea");
                     }
                 };
 
@@ -146,19 +143,19 @@ public class ReactionPersistence implements Repository<Reaction> {
 
                         reaction = (Reaction) xstream.fromXML(xml);
                     } catch (Exception e) {
-                        LOG.log(Level.SEVERE, "Reaction file {0} is not well formatted: {1}", new Object[]{file.getName(), e.getLocalizedMessage()});
+                        LOG.error("Reaction file {} is not well formatted: {}", new Object[]{file.getName(), e.getLocalizedMessage()});
                         continue;
                     }
 
                     if (reaction.getTrigger() != null && reaction.getTrigger().getName() != null) {
                         add(reaction);
                     } else {
-                        LOG.log(Level.SEVERE, "Cannot add reaction {0}: it has empty Trigger", file.getName());
+                        LOG.error("Cannot add reaction {}: it has empty Trigger", file.getName());
                         continue;
                     }
 
                     if (reaction.getCommands().isEmpty()) {
-                        LOG.log(Level.WARNING, "Reaction {0} has no valid commands. Maybe related objects are missing or not configured properly.", reaction.toString());
+                        LOG.warn("Reaction {} has no valid commands. Maybe related objects are missing or not configured properly.", reaction.toString());
                     }
 
                     summary.append(reaction.getUuid()).append("\t\t\t").append(reaction.toString())
@@ -172,10 +169,10 @@ public class ReactionPersistence implements Repository<Reaction> {
                 //Close the output stream
                 indexfile.close();
             } else {
-                LOG.log(Level.CONFIG, "No reactions to load from this folder {0}", folder.toString());
+                LOG.debug("No reactions to load from this folder {}", folder.toString());
             }
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Exception while loading reaction in {0}.\n{1}", new Object[]{folder.getAbsolutePath(), Freedomotic.getStackTraceInfo(e)});
+            LOG.error("Exception while loading reaction in {}", new Object[]{folder.getAbsolutePath()}, e);
         }
     }
 
@@ -191,14 +188,19 @@ public class ReactionPersistence implements Repository<Reaction> {
                 try {
                     r.getTrigger().register(); //trigger starts to listen on its channel
                 } catch (Exception e) {
-                    LOG.warning("Cannot register trigger");
+                    LOG.warn("Cannot register trigger");
                 }
                 list.add(r);
                 r.setChanged();
-                LOG.log(Level.CONFIG, "Added new reaction {0}", r.getDescription());
+                LOG.debug("Added new reaction {}", r.getDescription());
             }
         } else {
-            LOG.log(Level.INFO, "The reaction ''{0}'' is already loaded so it is skipped.", r.getDescription());
+            // Exists but has no commands
+            if (r.getCommands().isEmpty()) {
+                LOG.info("The reaction ''{}'' has no associated commands and will be unloaded.", r.getDescription());
+                remove(r);
+            }
+            LOG.info("The reaction ''{}'' is already loaded so it is skipped.", r.getDescription());
         }
     }
 
@@ -210,15 +212,15 @@ public class ReactionPersistence implements Repository<Reaction> {
     public static void remove(Reaction input) {
         if (input != null) {
             boolean removed = list.remove(input);
-            LOG.log(Level.INFO, "Removed reaction {0}", input.getDescription());
+            LOG.info("Removed reaction {}", input.getDescription());
             try {
                 input.getTrigger().unregister();
             } catch (Exception e) {
-                LOG.warning("Cannot unregister trigger");
+                LOG.warn("Cannot unregister trigger");
             }
 
             if ((!removed) && (list.contains(input))) {
-                LOG.log(Level.WARNING, "Error while removing Reaction {0} from the list", input.getDescription());
+                LOG.warn("Error while removing Reaction {} from the list", input.getDescription());
             }
         }
     }
@@ -281,7 +283,6 @@ public class ReactionPersistence implements Repository<Reaction> {
 
         return false;
     }
-    private static final Logger LOG = Logger.getLogger(ReactionPersistence.class.getName());
 
     @Override
     public List<Reaction> findAll() {
@@ -337,7 +338,7 @@ public class ReactionPersistence implements Repository<Reaction> {
             create(data);
             return data;
         } catch (Exception e) {
-            LOG.severe("Cannot modify reaction");
+            LOG.error("Cannot modify reaction", e);
             return null;
         }
     }
@@ -350,7 +351,7 @@ public class ReactionPersistence implements Repository<Reaction> {
             create(newOne);
             return newOne;
         } catch (Exception e) {
-            LOG.severe("Cannot copy reaction");
+            LOG.error("Cannot copy reaction", e);
             return null;
         }
     }

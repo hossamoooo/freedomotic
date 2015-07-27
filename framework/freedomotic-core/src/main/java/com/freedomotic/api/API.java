@@ -4,18 +4,19 @@
  */
 package com.freedomotic.api;
 
-import com.freedomotic.app.AppConfig;
+import com.freedomotic.bus.BusService;
+import com.freedomotic.settings.AppConfig;
 import com.freedomotic.environment.EnvironmentRepository;
-import com.freedomotic.things.ThingsRepository;
+import com.freedomotic.things.ThingRepository;
 import com.freedomotic.plugins.ClientStorage;
 import com.freedomotic.plugins.PluginsManager;
-import com.freedomotic.reactions.CommandPersistence;
 import com.freedomotic.reactions.ReactionPersistence;
-import com.freedomotic.reactions.TriggerPersistence;
 import com.freedomotic.security.Auth;
 import com.freedomotic.i18n.I18n;
-import com.freedomotic.nlp.NlpCommands;
-import com.freedomotic.things.ThingsFactory;
+import com.freedomotic.nlp.NlpCommand;
+import com.freedomotic.reactions.CommandRepository;
+import com.freedomotic.reactions.TriggerRepository;
+import com.freedomotic.things.ThingFactory;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
 
@@ -71,7 +72,7 @@ public interface API {
      * @return
      */
     PluginsManager getPluginManager();
-
+    
     //Resources API
     /**
      *
@@ -81,11 +82,13 @@ public interface API {
     BufferedImage getResource(String resourceIdentifier);
     
     EnvironmentRepository environments();
-    TriggerPersistence triggers();
-    ThingsRepository things();
-    CommandPersistence commands();
+    TriggerRepository triggers();
+    ThingRepository things();
+    CommandRepository commands();
     ReactionPersistence reactions();
-    NlpCommands nlpCommands();
+    NlpCommand nlpCommands();
     
-    ThingsFactory thingsFactory();
+    ThingFactory thingsFactory();
+    
+    BusService bus();
 }

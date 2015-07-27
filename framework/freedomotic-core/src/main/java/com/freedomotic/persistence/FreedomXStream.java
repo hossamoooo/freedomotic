@@ -45,6 +45,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.SimpleRole;
 
@@ -56,6 +57,9 @@ public class FreedomXStream {
 
     private static XStream xstream = null;
     private static final Logger LOG = Logger.getLogger(FreedomXStream.class.getName());
+
+    @Inject
+    private static ReactionConverter reactionConverter;
 
     /**
      * Creates a new fully configured serialization engine object which can be
@@ -69,6 +73,9 @@ public class FreedomXStream {
             xstream = new XStream();
             xstream.setMode(XStream.NO_REFERENCES);
             xstream.autodetectAnnotations(true);
+
+            // Things
+            xstream.omitField(EnvObject.class, "LOG");
 
             // Geometry
             xstream.alias("polygon", FreedomPolygon.class);
@@ -107,7 +114,7 @@ public class FreedomXStream {
             xstream.alias("payload", Payload.class);
 
             // Register custom converters
-            xstream.registerConverter(new ReactionConverter());
+            xstream.registerConverter(reactionConverter);
             xstream.registerConverter(new PropertiesConverter());
             xstream.registerConverter(new TupleConverter());
             xstream.alias("user", User.class);
@@ -129,8 +136,8 @@ public class FreedomXStream {
         try {
             outputStream = new FileOutputStream(file);
             writer = new OutputStreamWriter(outputStream, Charset.forName("UTF-8"));
-            //writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
-            serializer.toXML(object, outputStream);
+            writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+            serializer.toXML(object, writer);
         } catch (Exception exp) {
             LOG.log(Level.SEVERE, "Error while serializing instance to disk", exp);
         } finally {

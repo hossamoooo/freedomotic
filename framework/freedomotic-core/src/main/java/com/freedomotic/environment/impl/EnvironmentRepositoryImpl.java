@@ -19,17 +19,17 @@
  */
 package com.freedomotic.environment.impl;
 
-import com.freedomotic.app.AppConfig;
+import com.freedomotic.settings.AppConfig;
 import com.freedomotic.environment.EnvironmentLogic;
 import com.freedomotic.environment.EnvironmentRepository;
 import com.freedomotic.exceptions.RepositoryException;
 import com.freedomotic.model.environment.Environment;
 import com.freedomotic.model.environment.Zone;
 import com.freedomotic.things.EnvObjectLogic;
-import com.freedomotic.things.ThingsRepository;
+import com.freedomotic.things.ThingRepository;
 import com.freedomotic.persistence.FreedomXStream;
 import com.freedomotic.persistence.XmlPreprocessor;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import com.freedomotic.util.SerialClone;
 import com.freedomotic.util.UidGenerator;
 import com.google.inject.Inject;
@@ -53,10 +53,12 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
  */
 class EnvironmentRepositoryImpl implements EnvironmentRepository {
 
+    private static final Logger LOG = Logger.getLogger(EnvironmentRepositoryImpl.class.getName());
+
     // Dependencies
     private final AppConfig appConfig;
     private final EnvironmentPersistenceFactory environmentPersistenceFactory;
-    private final ThingsRepository thingsRepository;
+    private final ThingRepository thingsRepository;
 
     // The Environments cache
     private static final List<EnvironmentLogic> environments = new ArrayList<EnvironmentLogic>();
@@ -73,14 +75,14 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
     @Inject
     EnvironmentRepositoryImpl(
             AppConfig appConfig,
-            ThingsRepository thingsRepository,
+            ThingRepository thingsRepository,
             EnvironmentPersistenceFactory environmentPersistenceFactory)
             throws RepositoryException {
         this.appConfig = appConfig;
         this.thingsRepository = thingsRepository;
         this.environmentPersistenceFactory = environmentPersistenceFactory;
     }
-    
+
     @Override
     public void init() throws RepositoryException {
         cacheInitialData();
@@ -95,7 +97,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
     //TODO: change it to read all environments in the folder
     private synchronized void cacheInitialData() throws RepositoryException {
         if (initialized) {
-            LOG.config("Environment repository is already initialized. Skip initialization phase");
+            LOG.warning("Environment repository is already initialized. Skip initialization phase");
             return;
         }
         File defaultEnvironmentFolder = getDefaultEnvironmentFolder();
@@ -114,7 +116,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
 
     private File getDefaultEnvironmentFolder() throws RepositoryException {
         String envFilePath = appConfig.getProperty("KEY_ROOM_XML_PATH");
-        File envFile = new File(Info.PATHS.PATH_DATA_FOLDER + "/furn/" + envFilePath);
+        File envFile = new File(Info.PATHS.PATH_ENVIRONMENTS_FOLDER + "/" + envFilePath);
         File folder = envFile.getParentFile();
 
         if (folder == null) {
@@ -140,6 +142,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
      * @throws RepositoryException
      */
     @RequiresPermissions("environments:save")
+    @Override
     public void saveEnvironmentsToFolder(File folder) throws RepositoryException {
         if (environments.isEmpty()) {
             LOG.warning("There is no environment to persist, " + folder.getAbsolutePath() + " will not be altered.");
@@ -248,7 +251,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
      */
     @RequiresPermissions("environments:create")
     @Deprecated
-    public static EnvironmentLogic add(final EnvironmentLogic obj, boolean MAKE_UNIQUE) {
+    private static EnvironmentLogic add(final EnvironmentLogic obj, boolean MAKE_UNIQUE) {
         if ((obj == null)
                 || (obj.getPojo() == null)
                 || (obj.getPojo().getName() == null)
@@ -281,15 +284,13 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
         return envLogic;
     }
 
-   
-
     /**
      *
      * @param input
      */
     @RequiresPermissions("environments:delete")
     @Deprecated
-    public void remove(EnvironmentLogic input) {
+    private void remove(EnvironmentLogic input) {
         for (EnvObjectLogic obj : thingsRepository.findByEnvironment(input)) {
             thingsRepository.delete(obj);
         }
@@ -312,14 +313,6 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
         } finally {
             environments.clear();
         }
-    }
-
-    /**
-     *
-     * @return
-     */
-    public static int size() {
-        return environments.size();
     }
 
     private static void createFolderStructure(File folder) {
@@ -366,8 +359,8 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
      * @deprecated
      */
     @Deprecated
-    public static void loadEnvironmentFromFile(final File file)
-            throws RepositoryException {
+    private static void loadEnvironmentFromFile(final File file) throws RepositoryException {
+        LOG.config("Loading environment from file " + file.getAbsolutePath());
         XStream xstream = FreedomXStream.getXstream();
 
         //validate the object against a predefined DTD
@@ -398,6 +391,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
         // next line is commented as the method init() is called in the add()
         //envLogic.init();
         add(envLogic, false);
+        LOG.info("Environment '" + envLogic.getPojo().getName() + "' loaded");
     }
 
     /**
@@ -406,7 +400,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
      */
     @Deprecated
     @RequiresPermissions("environments:read")
-    public static List<EnvironmentLogic> getEnvironments() {
+    private static List<EnvironmentLogic> getEnvironments() {
         return environments;
     }
 
@@ -417,7 +411,7 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
      */
     @RequiresPermissions("environments:read")
     @Deprecated
-    public static EnvironmentLogic getEnvByUUID(String UUID) {
+    private static EnvironmentLogic getEnvByUUID(String UUID) {
         //     if (auth.isPermitted("environments:read:" + UUID)) {
         for (EnvironmentLogic env : environments) {
             if (env.getPojo().getUUID().equals(UUID)) {
@@ -427,7 +421,6 @@ class EnvironmentRepositoryImpl implements EnvironmentRepository {
         //   }
         return null;
     }
-    private static final Logger LOG = Logger.getLogger(EnvironmentRepositoryImpl.class.getName());
 
     @Override
     @RequiresPermissions("environments:read")

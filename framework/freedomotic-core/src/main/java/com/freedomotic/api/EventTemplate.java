@@ -19,23 +19,23 @@
  */
 package com.freedomotic.api;
 
-import com.freedomotic.app.Freedomotic;
 import com.freedomotic.rules.Payload;
 import com.freedomotic.rules.Statement;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
  * @author enrico
  */
-public class EventTemplate
-        implements Serializable {
+public class EventTemplate implements Serializable {
 
     private static final long serialVersionUID = -6726283450243677665L;
     protected String eventName;
@@ -43,6 +43,9 @@ public class EventTemplate
     protected Payload payload = new Payload();
     protected boolean isValid;
     private long creation;
+    
+    @XStreamOmitField
+    private static final Logger LOG = Logger.getLogger(EventTemplate.class.getName());
 
     protected void generateEventPayload() {
     }
@@ -159,7 +162,7 @@ public class EventTemplate
             payload.addStatement("sender",
                     getSender());
         } catch (Exception e) {
-            LOG.severe(Freedomotic.getStackTraceInfo(e));
+            LOG.log(Level.SEVERE, "Error while generating default data for event", e);
         }
     }
 
@@ -194,5 +197,9 @@ public class EventTemplate
     public Payload getPayload() {
         return payload;
     }
-    private static final Logger LOG = Logger.getLogger(EventTemplate.class.getName());
+    
+    @Override
+    public String toString() {
+        return getEventName();
+    }
 }

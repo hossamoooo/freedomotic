@@ -20,15 +20,14 @@ package com.freedomotic.persistence;
  * <http://www.gnu.org/licenses/>.
  */
 import com.freedomotic.exceptions.DataUpgradeException;
+import com.freedomotic.model.environment.Environment;
 import com.freedomotic.model.object.EnvObject;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -36,19 +35,20 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Uses XSLT (http://en.wikipedia.org/wiki/XSLT) to transform and update XML
- * files.
- * Transformation file should be in conf/validator folder and have a naming schema like
- * /conf/validator/TYPE-upgrade-FROMVERSION.xslt
+ * files. Transformation file should be in conf/validator folder and have a
+ * naming schema like /conf/validator/TYPE-upgrade-FROMVERSION.xslt
  * /conf/validator/things-upgrade-5.5.0.xslt"
  *
  * @author matteo
  */
 class DataUpgradeServiceImpl implements DataUpgradeService<String> {
 
-    private static final Logger LOG = Logger.getLogger(DataUpgradeServiceImpl.class.getCanonicalName());
+    private static final Logger LOG = LoggerFactory.getLogger(DataUpgradeServiceImpl.class.getCanonicalName());
     // Cache the loaded transformations
     Map<File, Source> sources = new HashMap<>();
 
@@ -57,22 +57,27 @@ class DataUpgradeServiceImpl implements DataUpgradeService<String> {
      */
     @Override
     public String upgrade(Class type, String xml, String fromVersion) throws DataUpgradeException {
-        LOG.log(Level.CONFIG, "Upgrading data of type {0} from version {1} to version {2}",
-                new Object[]{type.getCanonicalName(), fromVersion, Info.getVersion()});
 
         if (fromVersion.trim().equals(Info.getVersion())) {
-            LOG.log(Level.CONFIG, "Given data are already consistent with the most recent framework version. No XML transformation was performed");
+            LOG.debug("Given data are already consistent with the most recent framework version. No XML transformation was performed");
             return xml;
+        } else {
+            LOG.info("Upgrading data of type {} from version {} to version {}",
+                    new Object[]{type.getCanonicalName(), fromVersion, Info.getVersion()});
         }
 
         String upgradedXml;
+        Source xsltAlgorthm;
         try {
             if (type == EnvObject.class) {
-                upgradedXml = upgradeThings(xml, fromVersion);
+                xsltAlgorthm = getTransformationAlgorithm("things", fromVersion);
+            } else if (type == Environment.class) {
+                xsltAlgorthm = getTransformationAlgorithm("environments", fromVersion);
             } else {
                 // Return an exception if it's not a class that this service able to upgrade
                 throw new DataUpgradeException("Data upgrade service: upgrading entities of type " + type.getCanonicalName() + " is not supported");
             }
+            upgradedXml = upgradeContent(xml, xsltAlgorthm);
         } catch (TransformerException | DataUpgradeException transformerException) {
             throw new DataUpgradeException("Error while upgrading an XML data source", transformerException);
         }
@@ -80,22 +85,21 @@ class DataUpgradeServiceImpl implements DataUpgradeService<String> {
     }
 
     /**
-     * Upgrades an {@link EnvObject} to the current framework version
+     * Upgrades a xml content to the current framework version
      *
      * @param input
-     * @param inputVersion
+     * @param xsltAlgorithm
      * @return
      * @throws TransformerConfigurationException
      * @throws TransformerException
      */
-    private String upgradeThings(String input, String inputVersion) throws TransformerConfigurationException, TransformerException {
+    private String upgradeContent(String input, Source xsltAlgorithm) throws TransformerConfigurationException, TransformerException {
         // Load all the needed resources
-        Source xsltAlgorthm = getTransformationAlgorithm(inputVersion);
         StreamSource streamSource = new StreamSource(new StringReader(input));
         StreamResult streamResult = new StreamResult(new StringWriter());
         // Create the transformer
         TransformerFactory factory = TransformerFactory.newInstance();
-        Transformer transformer = factory.newTransformer(xsltAlgorthm);
+        Transformer transformer = factory.newTransformer(xsltAlgorithm);
         // Apply the transformation algorithm defined in the XSLT file
         transformer.transform(streamSource, streamResult);
         return streamResult.getWriter().toString();
@@ -109,9 +113,9 @@ class DataUpgradeServiceImpl implements DataUpgradeService<String> {
      * compatible with the current framework version
      * @return the transformation Source
      */
-    private Source getTransformationAlgorithm(String fromVersion) {
+    private Source getTransformationAlgorithm(String baseFile, String fromVersion) {
         // Take the source from cache or load it from file
-        File xsltFile = new File(Info.PATHS.PATH_CONFIG_FOLDER + "/validator/things-upgrade-" + fromVersion + ".xslt");
+        File xsltFile = new File(Info.PATHS.PATH_CONFIG_FOLDER + "/validator/" + baseFile + "-upgrade-" + fromVersion + ".xslt");
         if (!sources.containsKey(xsltFile)) {
             Source source = new StreamSource(xsltFile);
             sources.put(xsltFile, source);

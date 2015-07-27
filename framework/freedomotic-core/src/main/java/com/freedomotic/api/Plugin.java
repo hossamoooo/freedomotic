@@ -31,7 +31,7 @@ import com.freedomotic.events.PluginHasChanged;
 import com.freedomotic.events.PluginHasChanged.PluginActions;
 import com.freedomotic.model.ds.Config;
 import com.freedomotic.util.EqualsUtil;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +62,7 @@ public class Plugin implements Client, BusConsumer {
     @XmlElement
     private final String type = "Plugin";
     @XmlElement
-    protected volatile PluginStatus currentPluginStatus = PluginStatus.STOPPED;
+    private volatile PluginStatus currentPluginStatus = PluginStatus.STOPPED;
     @XmlElement
     public Config configuration;
     @Deprecated
@@ -188,8 +188,6 @@ public class Plugin implements Client, BusConsumer {
     public void notifyCriticalError(String message) {
         //Log the error on console/logfiles
         LOG.warning(message);
-        //change plugin description
-        setDescription(message);
         //write something on the GUI
         MessageEvent callout = new MessageEvent(this, message);
         callout.setType("callout"); //display as callout on frontends
@@ -198,10 +196,12 @@ public class Plugin implements Client, BusConsumer {
         busService.send(callout);
         //stop this plugin
         stop();
+        //override plugin description
+        setDescription(message);
         //plugin is now set as STOPPED, but should be marked as FAILED
         currentPluginStatus = PluginStatus.FAILED;
     }
-    
+
     protected void notifyCriticalError(String message, Exception ex) {
         //Log and keep stack trace
         LOG.log(Level.SEVERE, message, ex);
@@ -313,6 +313,10 @@ public class Plugin implements Client, BusConsumer {
         return pluginName;
     }
 
+    public String getStatus() {
+        return currentPluginStatus.name();
+    }
+
     /**
      *
      * @return
@@ -329,6 +333,10 @@ public class Plugin implements Client, BusConsumer {
     @Override
     public boolean isRunning() {
         return currentPluginStatus.equals(PluginStatus.RUNNING);
+    }
+
+    public boolean isAllowedToSend() {
+        return currentPluginStatus.equals(PluginStatus.STARTING) || currentPluginStatus.equals(PluginStatus.RUNNING);
     }
 
     public boolean isAllowedToStart() {
@@ -351,6 +359,11 @@ public class Plugin implements Client, BusConsumer {
     @Override
     public final void setName(String name) {
         pluginName = name;
+    }
+
+    protected final void setStatus(PluginStatus newStatus) {
+        currentPluginStatus = newStatus;
+
     }
 
 //    public boolean isConnected() {
@@ -464,7 +477,6 @@ public class Plugin implements Client, BusConsumer {
      */
     @Override
     public void start() {
-        LOG.log(Level.INFO, "Starting plugin {0}", getName());
         //do not add code here
     }
 
@@ -473,7 +485,6 @@ public class Plugin implements Client, BusConsumer {
      */
     @Override
     public void stop() {
-        LOG.log(Level.INFO, "Stopping plugin {0}", getName());
         //do not add code here
     }
 
@@ -500,6 +511,13 @@ public class Plugin implements Client, BusConsumer {
     @Override
     public void onMessage(ObjectMessage message) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void destroy() {
+        // Destroy the messaging channel
+        listener.destroy();
+        stop();
     }
 
 }

@@ -19,13 +19,14 @@
  */
 package com.freedomotic.app;
 
-import com.freedomotic.api.API;
+import com.freedomotic.settings.AppConfig;
 import com.freedomotic.api.Client;
 import com.freedomotic.api.EventTemplate;
 import com.freedomotic.bus.BootStatus;
 import com.freedomotic.bus.BusConsumer;
 import com.freedomotic.bus.BusMessagesListener;
 import com.freedomotic.bus.BusService;
+import com.freedomotic.core.Autodiscovery;
 import com.freedomotic.core.SynchManager;
 import com.freedomotic.core.TopologyManager;
 import com.freedomotic.environment.EnvironmentLogic;
@@ -35,21 +36,22 @@ import com.freedomotic.events.PluginHasChanged.PluginActions;
 import com.freedomotic.exceptions.RepositoryException;
 import com.freedomotic.exceptions.FreedomoticException;
 import com.freedomotic.exceptions.PluginLoadingException;
+import com.freedomotic.i18n.I18n;
 import com.freedomotic.marketplace.ClassPathUpdater;
 import com.freedomotic.marketplace.IPluginCategory;
 import com.freedomotic.marketplace.MarketPlaceService;
+import com.freedomotic.nlp.CommandsNlpService;
 import com.freedomotic.things.EnvObjectLogic;
-import com.freedomotic.things.ThingsRepository;
+import com.freedomotic.things.ThingRepository;
 import com.freedomotic.plugins.ClientStorage;
 import com.freedomotic.plugins.PluginsManager;
 import com.freedomotic.reactions.Command;
-import com.freedomotic.reactions.CommandPersistence;
+import com.freedomotic.reactions.CommandRepository;
 import com.freedomotic.reactions.ReactionPersistence;
-import com.freedomotic.reactions.TriggerPersistence;
+import com.freedomotic.reactions.TriggerRepository;
 import com.freedomotic.security.Auth;
 import com.freedomotic.security.UserRealm;
-import com.freedomotic.util.Info;
-import com.freedomotic.util.LogFormatter;
+import com.freedomotic.settings.Info;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -65,12 +67,13 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.RollingFileAppender;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
@@ -96,51 +99,69 @@ public class Freedomotic implements BusConsumer {
     public static Injector INJECTOR;
     //dependencies
     private final EnvironmentRepository environmentRepository;
-    private final ThingsRepository thingsRepository;
+    private final ThingRepository thingsRepository;
+    private final TriggerRepository triggerRepository;
     private final TopologyManager topologyManager;
     private final SynchManager synchManager;
+    private final CommandsNlpService commandsNlpService;
     private final ClientStorage clientStorage;
     private final PluginsManager pluginsManager;
     private AppConfig config;
     private final Auth auth;
-    private final API api;
+    private final I18n i18n;
     private BusMessagesListener listener;
     // TODO remove static modifier once static methods sendEvent & sendCommand are erased.
     private static BusService busService;
+    private final CommandRepository commandRepository;
+    private final Autodiscovery autodiscovery;
 
     /**
      *
+     * @param auth
      * @param pluginsLoader
      * @param environmentRepository
      * @param thingsRepository
+     * @param triggerRepository
+     * @param commandRepository
      * @param clientStorage
+     * @param commandsNlpService
      * @param config
-     * @param api
+     * @param i18n
      * @param busService
      * @param topologyManager
      * @param synchManager
+     * @param autodiscovery
      */
     @Inject
     public Freedomotic(
             PluginsManager pluginsLoader,
             EnvironmentRepository environmentRepository,
-            ThingsRepository thingsRepository,
+            ThingRepository thingsRepository,
+            TriggerRepository triggerRepository,
+            CommandRepository commandRepository,
             ClientStorage clientStorage,
+            CommandsNlpService commandsNlpService,
             AppConfig config,
-            API api,
+            I18n i18n,
             BusService busService,
             TopologyManager topologyManager,
-            SynchManager synchManager) {
+            Auth auth,
+            SynchManager synchManager,
+            Autodiscovery autodiscovery) {
         this.pluginsManager = pluginsLoader;
         this.environmentRepository = environmentRepository;
         this.thingsRepository = thingsRepository;
+        this.triggerRepository = triggerRepository;
+        this.commandRepository = commandRepository;
         this.busService = busService;
+        this.commandsNlpService = commandsNlpService;
         this.topologyManager = topologyManager;
         this.synchManager = synchManager;
         this.clientStorage = clientStorage;
         this.config = config;
-        this.api = api;
-        this.auth = api.getAuth();
+        this.i18n = i18n;
+        this.auth = auth;
+        this.autodiscovery = autodiscovery;
     }
 
     /**
@@ -154,7 +175,7 @@ public class Freedomotic implements BusConsumer {
         Info.relocateDataPath(new File(config.getStringProperty("KEY_DATA_PATH", defaultPath)));
 
         // init localization
-        api.getI18n().setDefaultLocale(config.getStringProperty("KEY_ENABLE_I18N", "no"));
+        i18n.setDefaultLocale(config.getStringProperty("KEY_ENABLE_I18N", "no"));
 
         // init auth* framework
         auth.initBaseRealm();
@@ -171,9 +192,9 @@ public class Freedomotic implements BusConsumer {
         String resourcesPath
                 = new File(Info.PATHS.PATH_WORKDIR
                         + config.getStringProperty("KEY_RESOURCES_PATH", "/build/classes/it/freedom/resources/")).getPath();
-        LOG.info("\nOS: " + System.getProperty("os.name") + "\n" + api.getI18n().msg("architecture") + ": "
+        LOG.info("\nOS: " + System.getProperty("os.name") + "\n" + i18n.msg("architecture") + ": "
                 + System.getProperty("os.arch") + "\n" + "OS Version: " + System.getProperty("os.version")
-                + "\n" + api.getI18n().msg("user") + ": " + System.getProperty("user.name") + "\n" + "Java Home: "
+                + "\n" + i18n.msg("user") + ": " + System.getProperty("user.name") + "\n" + "Java Home: "
                 + System.getProperty("java.home") + "\n" + "Java Library Path: {"
                 + System.getProperty("java.library.path") + "}\n" + "Program path: "
                 + System.getProperty("user.dir") + "\n" + "Java Version: " + System.getProperty("java.version")
@@ -206,25 +227,21 @@ public class Freedomotic implements BusConsumer {
          * Starting the logger and popup it in the browser
          * *****************************************************************
          */
-        if (config.getBooleanProperty("KEY_SAVE_LOG_TO_FILE", false)) {
+        if (!config.getStringProperty("KEY_SAVE_LOG_TO_FILE", "OFF").trim().equalsIgnoreCase("OFF")) {
             try {
-                File logdir = new File(Info.PATHS.PATH_WORKDIR + "/log/");
-                logdir.mkdir();
-
-                File logfile = new File(logdir + "/freedomotic.html");
-                logfile.createNewFile();
-
-                FileHandler handler = new FileHandler(logfile.getAbsolutePath(),
-                        false);
-                handler.setFormatter(new LogFormatter());
-                LOG.setLevel(Level.ALL);
-                LOG.addHandler(handler);
-                LOG.config(api.getI18n().msg("INIT_MESSAGE"));
+                PatternLayout layout = new PatternLayout("%d{HH:mm:ss.SSS} %-5p [%t] (%F:%L) %m%n");
+                RollingFileAppender rollingFileAppender = new RollingFileAppender(layout, Info.PATHS.PATH_WORKDIR + "/log/freedomotic.log");
+                rollingFileAppender.setMaxBackupIndex(5);
+                rollingFileAppender.setMaxFileSize("500KB");
+                org.apache.log4j.Logger proxyLogger = org.apache.log4j.Logger.getRootLogger();
+                proxyLogger.setLevel(org.apache.log4j.Level.toLevel(config.getStringProperty("KEY_SAVE_LOG_TO_FILE", "OFF")));
+                proxyLogger.setAdditivity(false);
+                proxyLogger.addAppender(rollingFileAppender);
 
                 if ((config.getBooleanProperty("KEY_LOGGER_POPUP", true) == true)
                         && (java.awt.Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))) {
                     java.awt.Desktop.getDesktop()
-                            .browse(new File(Info.PATHS.PATH_WORKDIR + "/log/freedomotic.html").toURI());
+                            .browse(new File(Info.PATHS.PATH_WORKDIR + "/log/freedomotic.log").toURI());
                 }
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
@@ -266,7 +283,7 @@ public class Freedomotic implements BusConsumer {
         try {
             pluginsManager.loadAllPlugins();
         } catch (PluginLoadingException ex) {
-            LOG.log(Level.WARNING,"Error while loading all plugins. Impossible to load " + ex.getPluginName(), ex);
+            LOG.log(Level.WARNING, "Error while loading all plugins. Impossible to load " + ex.getPluginName(), ex);
         }
 
         /**
@@ -314,7 +331,7 @@ public class Freedomotic implements BusConsumer {
             // Load all the Things in this environment
             File thingsFolder = env.getObjectFolder();
             List<EnvObjectLogic> loadedThings = thingsRepository.loadAll(thingsFolder);
-            for (EnvObjectLogic thing: loadedThings) {
+            for (EnvObjectLogic thing : loadedThings) {
                 thing.setEnvironment(env);
                 // Actvates the Thing. Important, otherwise it will be not visible in the environment
                 thingsRepository.create(thing);
@@ -322,8 +339,8 @@ public class Freedomotic implements BusConsumer {
         }
 
         // Loads the entire Reactions system (Trigger + Commands + Reactions)
-        TriggerPersistence.loadTriggers(new File(Info.PATHS.PATH_DATA_FOLDER + "/trg/"));
-        CommandPersistence.loadCommands(new File(Info.PATHS.PATH_DATA_FOLDER + "/cmd/"));
+        triggerRepository.loadTriggers(new File(Info.PATHS.PATH_DATA_FOLDER + "/trg/"));
+        commandRepository.loadCommands(new File(Info.PATHS.PATH_DATA_FOLDER + "/cmd/"));
         ReactionPersistence.loadReactions(new File(Info.PATHS.PATH_DATA_FOLDER + "/rea/"));
 
         // Starting plugins
@@ -451,9 +468,9 @@ public class Freedomotic implements BusConsumer {
      */
     public void onExit(EventTemplate event) {
         LOG.info("Received exit signal...");
-        //stop all plugins
+        // Stops and unloads all plugins
         for (Client plugin : clientStorage.getClients()) {
-            plugin.stop();
+            plugin.destroy();
         }
         BootStatus.setCurrentStatus(BootStatus.STOPPING);
         busService.destroy();
@@ -468,8 +485,8 @@ public class Freedomotic implements BusConsumer {
             savedDataRoot = Info.PATHS.PATH_WORKDIR + "/testSave/data";
         }
 
-        TriggerPersistence.saveTriggers(new File(savedDataRoot + "/trg"));
-        CommandPersistence.saveCommands(new File(savedDataRoot + "/cmd"));
+        triggerRepository.saveTriggers(new File(savedDataRoot + "/trg"));
+        commandRepository.saveCommands(new File(savedDataRoot + "/cmd"));
         ReactionPersistence.saveReactions(new File(savedDataRoot + "/rea"));
 
         //save the environment

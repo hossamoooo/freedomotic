@@ -21,7 +21,9 @@ package com.freedomotic.things;
 
 import com.freedomotic.behaviors.BehaviorLogic;
 import com.freedomotic.app.Freedomotic;
+import com.freedomotic.bus.BusService;
 import com.freedomotic.core.Resolver;
+import com.freedomotic.core.SynchThingRequest;
 import com.freedomotic.environment.EnvironmentLogic;
 import com.freedomotic.environment.EnvironmentRepository;
 import com.freedomotic.environment.ZoneLogic;
@@ -33,17 +35,19 @@ import com.freedomotic.model.geometry.FreedomShape;
 import com.freedomotic.model.object.EnvObject;
 import com.freedomotic.model.object.Representation;
 import com.freedomotic.reactions.Command;
-import com.freedomotic.reactions.CommandPersistence;
+import com.freedomotic.reactions.CommandRepository;
 import com.freedomotic.reactions.Reaction;
 import com.freedomotic.reactions.ReactionPersistence;
 import com.freedomotic.rules.Statement;
 import com.freedomotic.reactions.Trigger;
-import com.freedomotic.reactions.TriggerPersistence;
+import com.freedomotic.reactions.TriggerRepository;
+import com.freedomotic.things.ThingRepository.SynchAction;
 import com.freedomotic.util.TopologyUtils;
 import com.google.inject.Inject;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -65,6 +69,12 @@ public class EnvObjectLogic {
 
     @Inject
     protected EnvironmentRepository environmentRepository;
+    @Inject
+    protected TriggerRepository triggerRepository;
+    @Inject
+    protected CommandRepository commandRepository;
+    @Inject
+    private BusService busService;
 
     /**
      * Instantiation disabled from outside its package. Use
@@ -145,12 +155,12 @@ public class EnvObjectLogic {
         this.getPojo().setName(newName);
 
         //change trigger references to this object
-        for (Trigger t : TriggerPersistence.getTriggers()) {
+        for (Trigger t : triggerRepository.findAll()) {
             renameValuesInTrigger(t, oldName, newName);
         }
 
         //change commands references to this object
-        for (Command c : CommandPersistence.getUserCommands()) {
+        for (Command c : commandRepository.findUserCommands()) {
             renameValuesInCommand(c, oldName, newName);
         }
 
@@ -197,8 +207,7 @@ public class EnvObjectLogic {
             }
         }
 
-        pojo.getTriggers().setProperty(trigger.getName(),
-                behaviorName);
+        pojo.getTriggers().setProperty(trigger.getName(), behaviorName);
         LOG.log(Level.CONFIG, "Trigger mapping in object {0}: behavior ''{1}'' is now associated to trigger named ''{2}''",
                 new Object[]{this.getPojo().getName(), behaviorName, trigger.getName()});
     }
@@ -209,8 +218,33 @@ public class EnvObjectLogic {
      * @return
      */
     @RequiresPermissions("objects:read")
-    public String getAction(String t) {
+    public String getBehaviorNameMappedToTrigger(String t) {
         return getPojo().getTriggers().getProperty(t);
+    }
+
+    /**
+     * Notify that this Thing was created, deleted or updated. To just notify an
+     * update is better to use the {@link setChanged(true)} method.
+     *
+     * @param action
+     */
+    public void setChanged(SynchAction action) {
+        switch (action) {
+            case CREATED:
+                SynchThingRequest creationEvent = new SynchThingRequest(SynchThingRequest.SynchAction.CREATED, getPojo());
+                busService.send(creationEvent);
+                break;
+            case DELETED:
+                SynchThingRequest deletionEvent = new SynchThingRequest(SynchThingRequest.SynchAction.DELETED, getPojo());
+                busService.send(deletionEvent);
+                break;
+            case UPDATED:
+                // do nothing, the update is forced later
+                break;
+            default:
+                throw new AssertionError(action.name());
+        }
+        setChanged(true); //force the update in any case
     }
 
     /**
@@ -226,7 +260,7 @@ public class EnvObjectLogic {
             //send multicast because an event must be received by all triggers registred on the destination channel
             LOG.log(Level.FINE, "Object {0} changes something in its status (eg: a behavior value)",
                     this.getPojo().getName());
-            Freedomotic.sendEvent(objectEvent);
+            busService.send(objectEvent);
         } else {
             changed = false;
         }
@@ -240,7 +274,7 @@ public class EnvObjectLogic {
      */
     @RequiresPermissions("objects:update")
     public final void registerBehavior(BehaviorLogic b) {
-        if (getBehavior(b.getName()) != null) {
+        if (behaviors.get(b.getName()) != null) {
             behaviors.remove(b.getName());
             LOG.warning("Re-registering existing behavior " + b.getName() + " in object " + this.getPojo().getName());
             //throw new IllegalArgumentException("Impossible to register behavior " + b.getName() + " in object "
@@ -258,7 +292,20 @@ public class EnvObjectLogic {
      */
     @RequiresPermissions("objects:read")
     public final BehaviorLogic getBehavior(String name) {
-        return behaviors.get(name);
+        BehaviorLogic behaviorLogic = behaviors.get(name);
+        // Manage the case the behavior is not found
+        if (behaviorLogic == null) {
+            // Create a list of available behaviors
+            StringBuilder buff = new StringBuilder();
+            for (BehaviorLogic behavior : behaviors.values()) {
+                buff.append(behavior.getName()).append(" ");
+            }
+            // Print an user friendly message
+            LOG.log(Level.SEVERE, "Cannot find a behavior named ''{0}'' for thing named ''{1}''. "
+                    + "Avalable behaviors for this Thing are: {2}",
+                    new Object[]{name, getPojo().getName(), buff.toString()});
+        }
+        return behaviorLogic;
     }
 
     /**
@@ -436,43 +483,50 @@ public class EnvObjectLogic {
 
     /**
      * Changes a behavior value accordingly to the value property in the trigger
-     * in input
+     * in input without firing a command on hardware. It updates only the
+     * internal model
      *
-     * @param t an hardware level trigger
+     * @param trigger an hardware level trigger
      * @return true if the values is applied successfully, false otherwise
      */
-    public final boolean executeTrigger(Trigger t) {
-        String behavior = getAction(t.getName());
-
-        if (behavior == null) {
+    public final boolean executeTrigger(Trigger trigger) {
+        // Get the behavior name connected to the trigger in input
+        String behaviorName = getBehaviorNameMappedToTrigger(trigger.getName());
+        // If missing because it's not an hardware trigger check if it is specified in the trigger itself
+        if (behaviorName == null) {
             //LOG.severe("Hardware trigger '" + t.getName() + "' is not bound to any action of object " + this.getPojo().getName());
             //check if the behavior name is written in the trigger
-
-            behavior = t.getPayload().getStatements("behavior.name").isEmpty() ? "" : t.getPayload().getStatements("behavior.name").get(0).getValue();
-
-            if (behavior.isEmpty()) {
+            behaviorName = trigger.getPayload().getStatements("behavior.name").isEmpty()
+                    ? "" : trigger.getPayload().getStatements("behavior.name").get(0).getValue();
+            if (behaviorName.isEmpty()) {
                 return false;
             }
         }
 
-        Statement valueStatement = t.getPayload().getStatements("behaviorValue").get(0);
+        Statement valueStatement = trigger.getPayload().getStatements("behaviorValue").get(0);
 
         if (valueStatement == null) {
             LOG.log(Level.WARNING,
-                    "No value in hardware trigger ''{0}'' to apply to object action ''{1}'' of object {2}",
-                    new Object[]{t.getName(), behavior, getPojo().getName()});
+                    "No value in hardware trigger ''{0}'' to apply to behavior ''{1}'' of Thing {2}",
+                    new Object[]{trigger.getName(), behaviorName, getPojo().getName()});
 
             return false;
         }
 
         LOG.log(Level.CONFIG,
-                "Sensors notification ''{0}'' has changed ''{1}'' behavior ''{2}'' to {3}",
-                new Object[]{t.getName(), getPojo().getName(), behavior, valueStatement.getValue()});
+                "Sensors notification ''{0}'' is going to change ''{1}'' behavior ''{2}'' to ''{3}''",
+                new Object[]{trigger.getName(), getPojo().getName(), behaviorName, valueStatement.getValue()});
 
         Config params = new Config();
         params.setProperty("value", valueStatement.getValue());
-        getBehavior(behavior).filterParams(params, false); //false means not fire commands, only change behavior value
-
+        // Validating the target behavior
+        BehaviorLogic behavior = getBehavior(behaviorName);
+        if (behavior != null) {
+            behavior.filterParams(params, false); //false means not fire commands, only change behavior value
+        } else {
+            LOG.log(Level.SEVERE, "Cannot apply trigger ''{0}'' to Thing {1}", new Object[]{trigger.getName(), getPojo().getName()});
+            return false;
+        }
         return true;
     }
 
@@ -518,7 +572,7 @@ public class EnvObjectLogic {
 
         Resolver resolver = new Resolver();
         //adding a resolution context for object that owns this hardware level command. 'owner.' is the prefix of this context
-        resolver.addContext("request.", params);
+        resolver.addContext("", params);
         resolver.addContext("owner.", getExposedProperties());
         resolver.addContext("owner.", getExposedBehaviors());
 
@@ -529,7 +583,7 @@ public class EnvObjectLogic {
             //mark the command as not executed if it is supposed to not return
             //an execution state value
             if (Boolean.valueOf(command.getProperty("send-and-forget")) == true) {
-                LOG.config("Command '" + resolvedCommand.getName() + "' is 'send-and-forget' no execution result will be catched from plugin's reply");
+                LOG.log(Level.CONFIG, "Command ''{0}'' is ''send-and-forget'' no execution result will be catched from plugin''s reply", resolvedCommand.getName());
                 resolvedCommand.setReplyTimeout(-1); //disable reply request
                 Freedomotic.sendCommand(resolvedCommand);
                 return false;
@@ -542,7 +596,7 @@ public class EnvObjectLogic {
             }
 
             if (result == null) {
-                LOG.log(Level.WARNING, "Received null reply after sending hardware command " + resolvedCommand.getName());
+                LOG.log(Level.WARNING, "Received null reply after sending hardware command {0}", resolvedCommand.getName());
             } else if (result.isExecuted()) {
                 return true; //succesfully executed
             }
@@ -619,15 +673,21 @@ public class EnvObjectLogic {
 
         for (String action : pojo.getActions().stringPropertyNames()) {
             String commandName = pojo.getActions().getProperty(action);
-            Command command = CommandPersistence.getHardwareCommand(commandName);
+            Command command;
+            List<Command> list = commandRepository.findByName(commandName);
+            if (!list.isEmpty()) {
+                command = list.get(0);
+            } else {
+                throw new RuntimeException("No commands found with name " + commandName);
+            }
 
             if (command != null) {
-                LOG.log(Level.CONFIG,
+                LOG.log(Level.FINE,
                         "Caching the command ''{0}'' as related to action ''{1}'' ",
                         new Object[]{command.getName(), action});
                 setAction(action, command);
             } else {
-                LOG.log(Level.CONFIG,
+                LOG.log(Level.WARNING,
                         "Don''t exist a command called ''{0}'' is not possible to bound this command to action ''{1}'' of {2}",
                         new Object[]{commandName, action, this.getPojo().getName()});
             }

@@ -225,6 +225,10 @@ public class JavaDesktopFrontend extends Protocol {
 
     @Override
     protected void onEvent(EventTemplate event) {
+        if (drawer == null) {
+            LOG.warning("Skipping this frontend refresh, the plugin is not yet fully loaded");
+            return;
+        }
         if (event instanceof ObjectHasChangedBehavior) {
             drawer.setNeedRepaint(true);
             for (GraphPanel gp : graphs.values()) {
@@ -232,7 +236,6 @@ public class JavaDesktopFrontend extends Protocol {
             }
             if (drawer != null) {
                 drawer.setNeedRepaint(true);
-
             }
         } else if (event instanceof ZoneHasChanged) {
             //writing the string on the screen

@@ -27,7 +27,7 @@ import com.freedomotic.api.Plugin;
 import static com.freedomotic.plugins.devices.restapiv3.RestAPIv3.API_VERSION;
 import com.freedomotic.plugins.devices.restapiv3.auth.ShiroListener;
 import com.freedomotic.plugins.devices.restapiv3.filters.GuiceServletConfig;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import com.google.inject.servlet.GuiceFilter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -99,6 +99,7 @@ public final class RestJettyServer extends Server {
         ServletHolder atmosphereServletHolder = new ServletHolder(AtmosphereServlet.class);
         atmosphereServletHolder.setInitParameter("jersey.config.server.provider.packages", RestAPIv3.ATMOSPHRE_RESOURCE_PKG);
         atmosphereServletHolder.setInitParameter("org.atmosphere.websocket.messageContentType", "application/json");
+        atmosphereServletHolder.setInitParameter("org.atmosphere.cpr.AtmosphereInterceptor","org.atmosphere.interceptor.ShiroInterceptor");
 //        atmosphereServletHolder.setInitParameter("org.atmosphere.cpr.broadcasterClass", "org.atmosphere.jersey.JerseyBroadcaster");
         atmosphereServletHolder.setAsyncSupported(true);
         atmosphereServletHolder.setInitParameter("org.atmosphere.useWebSocket", "true");
@@ -107,10 +108,11 @@ public final class RestJettyServer extends Server {
 
         // jersey servlet
         ServletHolder jerseyServletHolder = new ServletHolder(ServletContainer.class);
-        // jerseyServletHolder.setInitParameter("jersey.config.server.provider.packages", JERSEY_RESOURCE_PKG);
         jerseyServletHolder.setInitParameter("javax.ws.rs.Application", JerseyApplication.class.getCanonicalName());
+        jerseyServletHolder.setInitParameter("jersey.config.server.wadl.disableWadl","true");
         jerseyServletHolder.setInitOrder(1);
         context.addServlet(jerseyServletHolder, "/" + API_VERSION + "/*");
+        
 
         // cors filter
         if (master.configuration.getBooleanProperty("enable-cors", false)) {
@@ -128,13 +130,13 @@ public final class RestJettyServer extends Server {
         // shiro filter
         if (master.getApi().getAuth().isInited()) {
             context.addEventListener(new ShiroListener());
-            context.addFilter(ShiroFilter.class, "/" + API_VERSION + "/*", null);
+            context.addFilter(ShiroFilter.class, "/*", null);
         }
 
-        // giuce filter
+        // guice filter
         context.addEventListener(guiceServletConfig);
         context.addFilter(GuiceFilter.class, "/*", null);
-
+    
         //static files handler        
         String staticDir = master.configuration.getStringProperty("serve-static", "swagger");
         context.setResourceBase(new File(master.getFile().getParent() + "/data/" + staticDir + "/").getAbsolutePath());

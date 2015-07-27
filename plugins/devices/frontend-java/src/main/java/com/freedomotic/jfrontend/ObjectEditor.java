@@ -29,21 +29,21 @@ import com.freedomotic.behaviors.ListBehaviorLogic;
 import com.freedomotic.behaviors.RangedIntBehaviorLogic;
 import com.freedomotic.behaviors.TaxonomyBehaviorLogic;
 import com.freedomotic.reactions.Command;
-import com.freedomotic.reactions.CommandPersistence;
 import com.freedomotic.reactions.Trigger;
-import com.freedomotic.reactions.TriggerPersistence;
 import com.freedomotic.security.Auth;
 import com.freedomotic.i18n.I18n;
-import com.freedomotic.nlp.NlpCommands;
-import com.freedomotic.util.Info;
+import com.freedomotic.nlp.NlpCommand;
+import com.freedomotic.settings.Info;
+import com.google.common.collect.Iterators;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.List;
 import java.util.Map.Entry;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -69,13 +69,13 @@ import javax.swing.event.ChangeListener;
 public class ObjectEditor
         extends javax.swing.JFrame {
 
-    private final EnvObjectLogic object;
+    private EnvObjectLogic object;
     private String oldName;
     private PropertiesPanel_1 commandsControlPanel;
     private PropertiesPanel_1 pnlTriggers;
     //private PropertiesPanel_1 controlPanel;
     ReactionsPanel reactionsPanel;
-    private final NlpCommands nlpCommands;
+    private final NlpCommand nlpCommands;
 
     private static API api = null;
     private static I18n I18n;
@@ -174,43 +174,55 @@ public class ObjectEditor
             setTitle(pojo.getName() + " (" + pojo.getSimpleType() + ")");
         }
 
-//        controlPanel = new PropertiesPanel_1(0, 1);
-//        tabControls.add(controlPanel);
-        tabControls.setLayout(new BoxLayout(tabControls, BoxLayout.PAGE_AXIS));
+        populateControlPanel();
+    }
+
+    /**
+     * Returns a reference to the thing that is edited by this form. It may be
+     * null if the thing it's deleted while the editor is open
+     *
+     * @return the thing reference or null if object does not exists anymore
+     */
+    public EnvObjectLogic getThing() {
+        return object;
+    }
+
+    private void populateControlPanel() {
+        tabControls.removeAll();
+
+        //tabControls.setLayout(new BoxLayout(tabControls, BoxLayout.PAGE_AXIS));
+        tabControls.setLayout(new GridLayout(Iterators.size(object.getBehaviors().iterator()), 2));
 
         //create an array of controllers for the object behaviors
         int row = 0;
 
-        for (BehaviorLogic b : object.getBehaviors()) {
+        for (Behavior behavior : object.getPojo().getBehaviors()) {
+            // All this is done just to keep the behavior orders as in pojo definition
+            BehaviorLogic b = object.getBehavior(behavior.getName());
             if (b instanceof BooleanBehaviorLogic) {
                 final BooleanBehaviorLogic bb = (BooleanBehaviorLogic) b;
                 final JToggleButton button;
 
                 if (bb.getValue()) {
-                    button = new JToggleButton(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName(), I18n.msg("false")}));
+                    button = new JToggleButton(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName() + " ", I18n.msg("false")}));
                 } else {
-                    button = new JToggleButton(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName(), I18n.msg("true")}));
+                    button = new JToggleButton(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName() + " ", I18n.msg("true")}));
                 }
 
-                JLabel label = new JLabel(b.getName() + ":");
-//                controlPanel.addRow();
-//                controlPanel.addElement(label, row, 0);
-//                controlPanel.addRow();
-//                controlPanel.addElement(button, row+1, 0);
+                JLabel label = new JLabel(getBehaviorLabel(b));
                 tabControls.add(label);
                 tabControls.add(button);
                 button.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         Config params = new Config();
-                        params.setProperty("value",
-                                new Boolean(!bb.getValue()).toString());
+                        params.setProperty("value", Boolean.toString(!bb.getValue()));
                         bb.filterParams(params, true);
 
                         if (bb.getValue()) {
-                            button.setText(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName(), I18n.msg("false")}));
+                            button.setText(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName() + " ", I18n.msg("false")}));
                         } else {
-                            button.setText(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName(), I18n.msg("true")}));
+                            button.setText(I18n.msg("set_PROPERTY_VALUE", new Object[]{bb.getName() + " ", I18n.msg("true")}));
                         }
                     }
                 });
@@ -223,17 +235,24 @@ public class ObjectEditor
                 final JPanel sliderPanel = new JPanel(new FlowLayout());
                 final JSlider slider = new JSlider();
 
-                slider.setValue(rb.getValue());
                 slider.setMaximum(rb.getMax());
                 slider.setMinimum(rb.getMin());
                 slider.setPaintTicks(true);
                 slider.setPaintTrack(true);
                 slider.setPaintLabels(false);
-                slider.setMajorTickSpacing(rb.getScale() * 10);
-                slider.setMinorTickSpacing(rb.getStep());
-                slider.setSnapToTicks(true);
+                //slider.setMajorTickSpacing(rb.getScale() * 10);
+                //slider.setMinorTickSpacing(rb.getStep());
+        		if ((rb.getMax() - rb.getMin()) / rb.getStep() < 10000) {
+        			slider.setMajorTickSpacing(rb.getStep());
+        			slider.setSnapToTicks(true);
+        		} else {
+        			// range is too wide, use 10000 ticks instead and don't snap
+        			slider.setMajorTickSpacing(10000);
+        			slider.setSnapToTicks(false);
+        		}
+                slider.setValue(rb.getValue());
 
-                JLabel label = new JLabel(b.getName() + ":");
+                JLabel label = new JLabel(getBehaviorLabel(b));
                 tabControls.add(label);
                 sliderPanel.add(slider);
                 sliderPanel.add(doubleValue);
@@ -242,6 +261,15 @@ public class ObjectEditor
                     @Override
                     public void stateChanged(ChangeEvent e) {
                         if (!slider.getValueIsAdjusting()) {
+        					if (!slider.getSnapToTicks()) {
+        						// SnapToTicks disabled, snap to RangedIntBehavior step (round down to closest)
+        						int snapValue = slider.getValue() / rb.getStep() * rb.getStep();
+        						if (slider.getValue() != snapValue) {
+        							slider.setValue(snapValue);
+        							return;
+        						}
+        					}
+
                             Config params = new Config();
                             params.setProperty("value",
                                     String.valueOf(slider.getValue()));
@@ -270,10 +298,11 @@ public class ObjectEditor
                 comboBox.setEditable(false);
                 comboBox.setSelectedItem(lb.getSelected());
 
-                JLabel label = new JLabel(b.getName() + ":");
+                JLabel label = new JLabel(getBehaviorLabel(b));
                 tabControls.add(label);
                 tabControls.add(comboBox);
                 comboBox.addActionListener(new ActionListener() {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         Config params = new Config();
                         params.setProperty("value", (String) comboBox.getSelectedItem());
@@ -905,7 +934,7 @@ public class ObjectEditor
             //addAndRegister a combo box with the list of alla available commands
             DefaultComboBoxModel allHardwareCommands = new DefaultComboBoxModel();
 
-            for (Command command : CommandPersistence.getHardwareCommands()) {
+            for (Command command : api.commands().findHardwareCommands()) {
                 allHardwareCommands.addElement(command);
             }
 
@@ -954,7 +983,7 @@ public class ObjectEditor
             //addAndRegister a combo box with the list of all available hardware triggers
             DefaultComboBoxModel model = new DefaultComboBoxModel();
 
-            for (Trigger trigger : TriggerPersistence.getTriggers()) {
+            for (Trigger trigger : api.triggers().findAll()) {
                 if (trigger.isHardwareLevel()) {
                     model.addElement(trigger);
                 }
@@ -974,7 +1003,11 @@ public class ObjectEditor
                 }
             }
 
-            Trigger relatedTrigger = TriggerPersistence.getTrigger(relatedTriggerName);
+            List<Trigger> found = api.triggers().findByName(relatedTriggerName);
+            Trigger relatedTrigger = null;
+            if (!found.isEmpty()){
+                relatedTrigger = found.get(0);
+            }
 
             //if related harware trigger is already defined
             if (relatedTrigger != null) {
@@ -1010,7 +1043,7 @@ public class ObjectEditor
     private void populateAutomationsTab() {
         tabAutomations.removeAll();
         tabAutomations.setLayout(new BorderLayout());
-        reactionsPanel = new ReactionsPanel(I18n, nlpCommands, object);
+        reactionsPanel = new ReactionsPanel(I18n, nlpCommands, api.triggers(), api.commands(), object);
         tabAutomations.add(reactionsPanel);
         tabAutomations.validate();
     }
@@ -1124,5 +1157,15 @@ public class ObjectEditor
         spnY.setEnabled(auth.isPermitted("objects:update"));
         environmentComboBox.setEditable(auth.isPermitted("objects:update"));
         btnDelete.setEnabled(auth.isPermitted("objects:delete"));
+    }
+
+    private String getBehaviorLabel(BehaviorLogic b) {
+        String label = "";
+        if (b.getDescription() != null && !b.getDescription().isEmpty()) {
+            label = b.getDescription() + " (" + b.getValueAsString() + "): ";
+        } else {
+            label = b.getName() + " (" + b.getValueAsString() + "): ";
+        }
+        return label;
     }
 }

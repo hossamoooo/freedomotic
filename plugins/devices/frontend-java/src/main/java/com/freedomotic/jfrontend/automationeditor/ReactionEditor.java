@@ -24,9 +24,9 @@ import com.freedomotic.reactions.Command;
 import com.freedomotic.reactions.Reaction;
 import com.freedomotic.reactions.ReactionPersistence;
 import com.freedomotic.reactions.Trigger;
-import com.freedomotic.reactions.TriggerPersistence;
 import com.freedomotic.i18n.I18n;
-import com.freedomotic.nlp.NlpCommands;
+import com.freedomotic.nlp.NlpCommand;
+import com.freedomotic.reactions.CommandRepository;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -34,6 +34,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JButton;
 
@@ -46,20 +47,22 @@ public class ReactionEditor
     //private PropertiesPanel_1 panel = new PropertiesPanel_1(0, 1);
 
     private Reaction reaction;
-    private ArrayList<GuessCommandBox> list = new ArrayList<GuessCommandBox>();
+    private List<GuessCommandBox> commandBoxes = new ArrayList<GuessCommandBox>();
     private Box cmdBox = Box.createVerticalBox();
     private Component parent = null;
     private final I18n I18n;
-    private NlpCommands nlpCommands;
+    private NlpCommand nlpCommands;
+    private CommandRepository commandRepository;
 
     /**
      * Creates new form ReactionEditor
      *
      * @param parent
      */
-    public ReactionEditor(I18n i18n, NlpCommands nlpCommands, Reaction reaction, Component parent) {
+    public ReactionEditor(I18n i18n, NlpCommand nlpCommands, CommandRepository commandRepository, Reaction reaction, Component parent) {
         this.I18n = i18n;
         this.nlpCommands = nlpCommands;
+        this.commandRepository = commandRepository;
         initComponents();
         this.reaction = reaction;
         this.parent = parent;
@@ -70,7 +73,7 @@ public class ReactionEditor
      *
      * @param i18n
      */
-    public ReactionEditor(I18n i18n, NlpCommands nlpCommands) {
+    public ReactionEditor(I18n i18n, NlpCommand nlpCommands) {
         this.I18n = i18n;
         this.nlpCommands = nlpCommands;
         initComponents();
@@ -99,12 +102,12 @@ public class ReactionEditor
                             trigger.getName()); //the default choice
                     c.setReplyTimeout(Integer.MAX_VALUE);
 
-                    Command reply = Freedomotic.sendCommand(c);
-                    String newTrigger = reply.getProperty("edited");
-
-                    if (newTrigger != null) {
-                        btnTrigger.setName(TriggerPersistence.getTrigger(newTrigger).getName());
-                    }
+                    Freedomotic.sendCommand(c);
+                    //String newTriggerName = reply.getProperty("edited");
+                    //if (newTriggerName == null) {
+                    //    throw new IllegalStateException("Trigger name in reply cannot be null");
+                    //}
+                    //btnTrigger.setName(newTriggerName);
 
                     //trigger = null;
                     //setText(INFO_MESSAGE);
@@ -118,7 +121,7 @@ public class ReactionEditor
         int i = 0;
 
         for (Command command : reaction.getCommands()) {
-            GuessCommandBox box = new GuessCommandBox(I18n, this, nlpCommands, command);
+            GuessCommandBox box = new GuessCommandBox(I18n, this, nlpCommands, commandRepository, command);
 
             addBox(box);
         }
@@ -128,7 +131,7 @@ public class ReactionEditor
     }
 
     private void addEmptyBox() {
-        GuessCommandBox emptyBox = new GuessCommandBox(I18n, this, nlpCommands);
+        GuessCommandBox emptyBox = new GuessCommandBox(I18n, this, nlpCommands, commandRepository);
         addBox(emptyBox);
         this.validate();
         this.parent.validate();
@@ -136,14 +139,14 @@ public class ReactionEditor
 
     private void addBox(GuessCommandBox box) {
         cmdBox.add(box);
-        list.add(box);
+        commandBoxes.add(box);
         this.validate();
         this.parent.validate();
     }
 
     private void removeBox(GuessCommandBox box) {
         cmdBox.remove(box);
-        list.remove(box);
+        commandBoxes.remove(box);
         this.validate();
         this.parent.validate();
     }
@@ -164,7 +167,7 @@ public class ReactionEditor
       // End of variables declaration//GEN-END:variables
 
     void onCommandConfirmed(GuessCommandBox box) {
-        int index = list.indexOf(box);
+        int index = commandBoxes.indexOf(box);
 
         if (index >= reaction.getCommands().size()) { //the last box is now filled
             reaction.getCommands().add(box.getCommand());
@@ -183,7 +186,7 @@ public class ReactionEditor
         reaction.getCommands().remove(box.getCommand());
         removeBox(box);
 
-        if (list.size() <= reaction.getCommands().size()) {
+        if (commandBoxes.size() <= reaction.getCommands().size()) {
             addEmptyBox();
         }
 

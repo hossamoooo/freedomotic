@@ -30,6 +30,7 @@ public interface Repository<T> {
 
     public List<T> findAll();
 
+    // TODO: it's supposed name it's a unique identifier, should return a single object
     public List<T> findByName(String name);
 
     public T findOne(String uuid);
@@ -42,7 +43,6 @@ public interface Repository<T> {
 
     public T modify(String uuid, T data);
     
-    //TODO: should take an object
     public T copy(T data);
     
     public void deleteAll();

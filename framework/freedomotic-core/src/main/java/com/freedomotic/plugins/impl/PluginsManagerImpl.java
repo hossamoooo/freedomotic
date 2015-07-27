@@ -6,15 +6,15 @@ package com.freedomotic.plugins.impl;
 
 import com.freedomotic.api.Client;
 import com.freedomotic.api.Plugin;
-import com.freedomotic.app.Freedomotic;
 import com.freedomotic.exceptions.RepositoryException;
 import com.freedomotic.exceptions.PluginLoadingException;
+import com.freedomotic.i18n.I18n;
 import com.freedomotic.plugins.ClientStorage;
 import com.freedomotic.plugins.PluginsManager;
-import com.freedomotic.reactions.CommandPersistence;
+import com.freedomotic.reactions.CommandRepository;
 import com.freedomotic.reactions.ReactionPersistence;
-import com.freedomotic.reactions.TriggerPersistence;
-import com.freedomotic.util.Info;
+import com.freedomotic.reactions.TriggerRepository;
+import com.freedomotic.settings.Info;
 import com.freedomotic.util.Unzip;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -30,9 +30,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An helper class that uses an internal DAO pattern to addBoundle plugins of
@@ -42,17 +42,27 @@ import org.apache.commons.io.FileUtils;
  */
 class PluginsManagerImpl implements PluginsManager {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PluginsManager.class.getName());
+
     // Depedencies
     private ClientStorage clientStorage;
-    private TriggerPersistence triggers;
+    private TriggerRepository triggers;
+    private I18n i18n;
+    private CommandRepository commandRepository;
 
     @Inject
     Injector injector;
 
     @Inject
-    PluginsManagerImpl(ClientStorage clientStorage, TriggerPersistence triggers) {
+    PluginsManagerImpl(
+            ClientStorage clientStorage,
+            TriggerRepository triggers,
+            CommandRepository commandRepository,
+            I18n i18n) {
         this.clientStorage = clientStorage;
         this.triggers = triggers;
+        this.i18n = i18n;
+        this.commandRepository =  commandRepository;
     }
 
     /**
@@ -122,7 +132,9 @@ class PluginsManagerImpl implements PluginsManager {
                 Plugin p = (Plugin) client;
                 p.loadPermissionsFromManifest();
                 if (p.getConfiguration().getBooleanProperty("enable-i18n", false)) {
-                    p.getApi().getI18n().registerPluginBundleDir(p);
+                    i18n.registerBundleTranslations(
+                            p.getClass().getPackage().getName(),
+                            new File(p.getFile().getParentFile() + "/data/i18n"));
                 }
             }
             clientStorage.add(client);
@@ -162,11 +174,11 @@ class PluginsManagerImpl implements PluginsManager {
                     unzipAndDelete(zipFile);
                     loadSingleBoundle(new File(Info.PATHS.PATH_OBJECTS_FOLDER + "/" + pluginName));
                 } else {
-                    LOG.warning("No installable Freedomotic plugins at URL " + fromURL);
+                    LOG.warn("No installable Freedomotic plugins at URL " + fromURL);
                 }
             }
         } catch (Exception ex) {
-            LOG.severe(Freedomotic.getStackTraceInfo(ex));
+            LOG.error("Error while installing boundle downloaded from " + fromURL, ex);
 
             return false; //not done
         }
@@ -206,11 +218,11 @@ class PluginsManagerImpl implements PluginsManager {
                 FileUtils.deleteDirectory(boundleRootFolder);
                 isDeleted = true;
             } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error while unistalling plugin boundle " + boundleRootFolder.getAbsolutePath(), ex);
+                LOG.error("Error while unistalling plugin boundle " + boundleRootFolder.getAbsolutePath(), ex);
             }
 
         } else {
-            LOG.warning("Cannot uninstall " + client.getName() + " it is not a filesystem plugin");
+            LOG.warn("Cannot uninstall " + client.getName() + " it is not a filesystem plugin");
         }
 
         return isDeleted;
@@ -222,7 +234,7 @@ class PluginsManagerImpl implements PluginsManager {
         try {
             Unzip.unzip(zipFile.toString());
         } catch (Exception e) {
-            LOG.severe(Freedomotic.getStackTraceInfo(e));
+            LOG.error("Error while unzipping boundle " + zipFile.getAbsolutePath(), e);
 
             return false;
         }
@@ -247,7 +259,7 @@ class PluginsManagerImpl implements PluginsManager {
             throws PluginLoadingException {
         //now loadBoundle data for this jar (can contain more than one plugin)
         //resources are mergend in the default resources folder
-        CommandPersistence.loadCommands(new File(directory + "/data/cmd"));
+        commandRepository.loadCommands(new File(directory + "/data/cmd"));
         triggers.loadTriggers(new File(directory + "/data/trg"));
         ReactionPersistence.loadReactions(new File(directory + "/data/rea"));
 
@@ -259,7 +271,7 @@ class PluginsManagerImpl implements PluginsManager {
         File templatesFolder = new File(directory + "/data/templates/");
 
         if (templatesFolder.exists()) {
-            LOG.log(Level.INFO, "Loading object templates from {0}", templatesFolder.getAbsolutePath());
+            LOG.info("Loading object templates from {}", templatesFolder.getAbsolutePath());
             //for every envobject class a placeholder is created
             File[] templates
                     = templatesFolder.listFiles(new FilenameFilter() {
@@ -285,7 +297,7 @@ class PluginsManagerImpl implements PluginsManager {
                 }
             }
         } else {
-            LOG.log(Level.INFO, "No object templates to load from {0}", templatesFolder.getAbsolutePath());
+            LOG.debug("No object templates to load from {}", templatesFolder.getAbsolutePath());
         }
     }
 
@@ -318,9 +330,9 @@ class PluginsManagerImpl implements PluginsManager {
                 }
             }
         } catch (FileNotFoundException foundEx) {
-            LOG.config("No file to copy in " + source);
+            LOG.debug("No file to copy in " + source);
         } catch (IOException ex) {
-            LOG.warning(ex.getMessage());
+            LOG.warn("Error while coping resources", ex);
         } finally {
             try {
                 if (input != null) {
@@ -370,5 +382,4 @@ class PluginsManagerImpl implements PluginsManager {
         //TODO: add also the other properties
         return client;
     }
-    private static final Logger LOG = Logger.getLogger(PluginsManager.class.getName());
 }

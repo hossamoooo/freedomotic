@@ -10,7 +10,7 @@ nbactions.xml
 nb-configuration.xml
 findbugs.settings
 pmd.setting
-PACKAGE
+.sonar/
 
 # Java specific #
 #################
@@ -19,7 +19,7 @@ PACKAGE
 *.war
 *.ear
 
-# Archieves #
+# Archives #
 #############
 *.7z
 *.dmg
@@ -73,10 +73,16 @@ log/
 # Maven #
 #########
 target/
+*.versionsBackup
 
 #IntelliJ#
 *.iml
 .idea/
+
+#Eclipse#
+.classpath
+.project
+.settings/
 
 # Libraries (negate general jar rule) #
 #######################################

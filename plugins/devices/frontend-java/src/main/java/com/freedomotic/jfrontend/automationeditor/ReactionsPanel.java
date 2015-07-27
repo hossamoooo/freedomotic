@@ -24,9 +24,10 @@ import com.freedomotic.reactions.Reaction;
 import com.freedomotic.reactions.ReactionPersistence;
 import com.freedomotic.rules.Statement;
 import com.freedomotic.reactions.Trigger;
-import com.freedomotic.reactions.TriggerPersistence;
 import com.freedomotic.i18n.I18n;
-import com.freedomotic.nlp.NlpCommands;
+import com.freedomotic.nlp.NlpCommand;
+import com.freedomotic.reactions.CommandRepository;
+import com.freedomotic.reactions.TriggerRepository;
 import java.awt.BorderLayout;
 import java.util.Iterator;
 import javax.swing.BoxLayout;
@@ -45,17 +46,21 @@ public class ReactionsPanel
     private JPanel panel = new JPanel();
     private JScrollPane scrollPane;
     private final I18n I18n;
-    private NlpCommands nlpCommands;
+    private NlpCommand nlpCommands;
+    private TriggerRepository triggerRepository;
+        private CommandRepository commandRepository;
 
     /**
      * Creates new form ReactionList
      *
      * @param plugin
      */
-    public ReactionsPanel(AutomationsEditor plugin, NlpCommands nlpCommands) {
+    public ReactionsPanel(AutomationsEditor plugin, NlpCommand nlpCommands, TriggerRepository triggerRepository, CommandRepository commandRepository) {
         this.plugin = plugin;
         this.nlpCommands = nlpCommands;
         this.I18n = plugin.getApi().getI18n();
+        this.triggerRepository = triggerRepository;
+        this.commandRepository = commandRepository;
         init(null);
     }
 
@@ -64,9 +69,11 @@ public class ReactionsPanel
      * @param i18n
      * @param obj
      */
-    public ReactionsPanel(I18n i18n, NlpCommands nlpCommands, EnvObjectLogic obj) {
+    public ReactionsPanel(I18n i18n, NlpCommand nlpCommands, TriggerRepository triggerRepository, CommandRepository commandRepository, EnvObjectLogic obj) {
         this.I18n = i18n;
         this.nlpCommands = nlpCommands;
+        this.triggerRepository = triggerRepository;
+                this.commandRepository = commandRepository;
         init(obj);
     }
 
@@ -86,7 +93,7 @@ public class ReactionsPanel
     private void populateAllAutomations() {
         panel.removeAll();
 
-        for (Trigger trigger : TriggerPersistence.getTriggers()) {
+        for (Trigger trigger : triggerRepository.findAll()) {
             if (!trigger.isHardwareLevel()) {
                 //display already stored reactions related to this objects
                 boolean found = false;
@@ -94,7 +101,7 @@ public class ReactionsPanel
 
                 for (Reaction r : ReactionPersistence.getReactions()) {
                     if (r.getTrigger().equals(trigger) && !r.getCommands().isEmpty()) {
-                        ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, r, this);
+                        ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, commandRepository, r, this);
                         panel.add(editor, pos++);
                         found = true;
                     }
@@ -103,7 +110,7 @@ public class ReactionsPanel
                 if (!found) { //add an empty reaction if none
                     pos = panel.getComponentCount();
 
-                    ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, new Reaction(trigger), this);
+                    ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, commandRepository, new Reaction(trigger), this);
                     panel.add(editor, pos++);
                 }
 
@@ -118,7 +125,7 @@ public class ReactionsPanel
     private void populateObjAutomations(EnvObjectLogic object) {
         panel.removeAll();
 
-        for (Trigger trigger : TriggerPersistence.getTriggers()) {
+        for (Trigger trigger : triggerRepository.findAll()) {
             boolean isRelated = false;
 
             if (!trigger.isHardwareLevel()) {
@@ -130,7 +137,6 @@ public class ReactionsPanel
 
                     if (statement.getValue().contains(object.getPojo().getName())) {
                         isRelated = true; //is a trigger related with this object
-
                         break; //no need to check the other statements in current trigger
                     }
                 }
@@ -143,7 +149,7 @@ public class ReactionsPanel
                     //display already stored reactions related to this objects
                     for (Reaction r : ReactionPersistence.getReactions()) {
                         if (r.getTrigger().equals(trigger)) {
-                            ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, r, this);
+                            ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, commandRepository, r, this);
                             panel.add(editor);
                             alreadyStored = true;
                         }
@@ -151,7 +157,7 @@ public class ReactionsPanel
 
                     if (!alreadyStored) { //add an empty reaction if none
 
-                        ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, new Reaction(trigger), this);
+                        ReactionEditor editor = new ReactionEditor(I18n, nlpCommands, commandRepository, new Reaction(trigger), this);
                         panel.add(editor);
                     }
                 }

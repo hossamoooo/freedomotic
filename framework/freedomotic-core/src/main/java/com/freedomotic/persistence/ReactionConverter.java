@@ -22,10 +22,8 @@ package com.freedomotic.persistence;
 import com.freedomotic.rules.Statement;
 import com.freedomotic.core.Condition;
 import com.freedomotic.reactions.Command;
-import com.freedomotic.reactions.CommandPersistence;
+import com.freedomotic.reactions.CommandRepository;
 import com.freedomotic.reactions.Reaction;
-import com.freedomotic.reactions.Trigger;
-import com.freedomotic.reactions.TriggerPersistence;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -33,12 +31,16 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 
 /**
  *
  * @author Enrico
  */
 class ReactionConverter implements Converter {
+    
+    @Inject
+    private CommandRepository commandRepository;
 
     /**
      *
@@ -112,13 +114,13 @@ class ReactionConverter implements Converter {
      */
     @Override
     public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext uc) {
-        Trigger t;
+        //Trigger t;
         List<Condition> conditions = new ArrayList<Condition>();
         ArrayList<Command> list = new ArrayList<Command>();
 
         reader.moveDown(); //goes down to <trigger>
         String triggerName = reader.getValue();
-        t = TriggerPersistence.getTrigger(triggerName.trim());
+        //t = TriggerPersistence.getTrigger(triggerName.trim());
         reader.moveUp(); //up to root
 
         //go down to conditions or sequence
@@ -155,14 +157,16 @@ class ReactionConverter implements Converter {
         }
         while (reader.hasMoreChildren()) {
             reader.moveDown(); //move down to command
-            Command c = CommandPersistence.getCommand(reader.getValue().trim());
-            if (c != null) {
-                list.add(c);
+            List<Command> commands = commandRepository.findByName(reader.getValue().trim());
+            if (!commands.isEmpty()) {
+                list.add(commands.get(0));
+            } else {
+                throw new RuntimeException("Cannot find command named " + reader.getValue().trim());
             }
             reader.moveUp(); //move up to sequence
         }
         reader.moveUp(); //move uo to root
-        return new Reaction(t, conditions, list);
+        return new Reaction(triggerName, conditions, list);
     }
 
     /**

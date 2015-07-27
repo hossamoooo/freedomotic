@@ -29,7 +29,7 @@ import com.freedomotic.plugins.PluginsManager;
 import com.freedomotic.plugins.devices.restapiv3.filters.ItemNotFoundException;
 import static com.freedomotic.plugins.devices.restapiv3.resources.jersey.MarketplaceResource.api;
 import com.freedomotic.plugins.devices.restapiv3.utils.AbstractReadOnlyResource;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
@@ -41,6 +41,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -105,7 +106,7 @@ public class MarketplaceProvidersResource extends AbstractReadOnlyResource<IMark
         return mps.getProviders().get(id);
     }
 
-    @GET
+   
     @Path("/{id}/categories")
     public MarketplaceCategoryResource listCategories(
             @ApiParam(value = "Index of marketplace provider", required = true)
@@ -114,7 +115,7 @@ public class MarketplaceProvidersResource extends AbstractReadOnlyResource<IMark
         return new MarketplaceCategoryResource((ArrayList<IPluginCategory>) mps.getProviders().get(id).getAvailableCategories());
     }
 
-    @GET
+    
     @Path("/{id}/plugins")
     public MarketplacePluginsResource listPluginsFromProvider(
             @ApiParam(value = "Index of marketplace provider", required = true)
@@ -168,7 +169,7 @@ public class MarketplaceProvidersResource extends AbstractReadOnlyResource<IMark
     }
 
     @POST
-    @Path("{id}/plugins/install/{nid}")
+    @Path("/{id}/plugins/install/{nid}")
     @ApiOperation(value = "Download and install a plugin, given its node id")
     @ApiResponses(value = {
         @ApiResponse(code = 202, message = "Plugin installation succeded")

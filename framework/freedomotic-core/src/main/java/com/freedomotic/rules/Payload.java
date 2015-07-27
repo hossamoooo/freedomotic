@@ -25,9 +25,9 @@ package com.freedomotic.rules;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -40,7 +40,7 @@ public final class Payload implements Serializable {
 
     private static final long serialVersionUID = -5799483105084939108L;
     @XmlElement
-    List<Statement> payload = new CopyOnWriteArrayList<Statement>();
+    private final List<Statement> payload = Collections.synchronizedList(new ArrayList<Statement>());
 
     /**
      *
@@ -184,9 +184,9 @@ public final class Payload implements Serializable {
     }
 
     private static boolean isStatementConsistent(String triggerOperand, String triggerValue, String eventValue) {
-            ExpressionFactory factory = new ExpressionFactory<>();
-            Expression exp = factory.createExpression(eventValue, triggerOperand, triggerValue);
-            return (boolean) exp.evaluate();
+        ExpressionFactory factory = new ExpressionFactory<>();
+        Expression exp = factory.createExpression(eventValue, triggerOperand, triggerValue);
+        return (boolean) exp.evaluate();
     }
 
     /**
@@ -197,13 +197,19 @@ public final class Payload implements Serializable {
     public List<Statement> getStatements(String attribute) {
         ArrayList<Statement> statements = new ArrayList<Statement>();
 
-        for (Statement i : payload) {
-            if (i.getAttribute().equalsIgnoreCase(attribute)) {
-                statements.add(i);
+        synchronized(payload) {
+            for (Statement i : payload) {
+                if (i.getAttribute().equalsIgnoreCase(attribute)) {
+                    statements.add(i);
+                }
             }
         }
 
         return statements;
+    }
+
+    public List<Statement> getStatements() {
+        return payload;
     }
 
     /**
@@ -246,21 +252,21 @@ public final class Payload implements Serializable {
      */
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
-        Iterator<Statement> it = payload.iterator();
-        buffer.append("{{");
-        boolean first = true;
-        while (it.hasNext()) {
-            Statement s = it.next();
-            if (first) {
-                buffer.append(s.toString());
-                first = false;
-            } else {
-                buffer.append("; ").append(s.toString());
-            }
-        }
-        buffer.append("}}");
-        return buffer.toString();
+//        StringBuilder buffer = new StringBuilder();
+//        Iterator<Statement> it = payload.iterator();
+//        buffer.append("{{");
+//        boolean first = true;
+//        while (it.hasNext()) {
+//            Statement s = it.next();
+//            if (first) {
+//                buffer.append(s.toString());
+//                first = false;
+//            } else {
+//                buffer.append("; ").append(s.toString());
+//            }
+//        }
+//        buffer.append("}}");
+        return "";//buffer.toString();
     }
 
     /**

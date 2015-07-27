@@ -26,10 +26,10 @@ import com.freedomotic.events.PluginHasChanged;
 import com.freedomotic.events.PluginHasChanged.PluginActions;
 import com.freedomotic.exceptions.RepositoryException;
 import com.freedomotic.model.ds.Config;
-import com.freedomotic.things.ThingsRepository;
+import com.freedomotic.things.ThingRepository;
 import com.freedomotic.plugins.ClientStorage;
 import com.freedomotic.plugins.ObjectPluginPlaceholder;
-import com.freedomotic.util.Info;
+import com.freedomotic.settings.Info;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import java.io.File;
@@ -51,7 +51,7 @@ class ClientStorageInMemory implements ClientStorage {
     @Inject
     private Injector injector;
     @Inject
-    private ThingsRepository thingsRepository;
+    private ThingRepository thingsRepository;
     @Inject
     private BusService busService;
 
@@ -83,18 +83,21 @@ class ClientStorageInMemory implements ClientStorage {
                             c.getName(), PluginActions.ENQUEUE);
             busService.send(event);
             LOG.log(Level.CONFIG,
-                    "{0} added to plugins list.",
+                    "Extension ''{0}'' added to plugins list.",
                     c.getName());
         }
     }
 
     /**
-     *
+     * Unloads a plugin from memory and destroys all bus listeners associated
+     * to it.
      * @param c
      */
     @Override
     public void remove(Client c) {
         if (clients.contains(c)) {
+            // Stops and unsubscribes channels
+            c.destroy();
             clients.remove(c);
 
             PluginHasChanged event

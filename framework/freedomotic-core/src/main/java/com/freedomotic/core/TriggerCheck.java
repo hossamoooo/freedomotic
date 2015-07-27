@@ -24,14 +24,13 @@
 package com.freedomotic.core;
 
 import com.freedomotic.api.EventTemplate;
-import com.freedomotic.app.Freedomotic;
 import com.freedomotic.bus.BusService;
-import com.freedomotic.environment.EnvironmentRepository;
 import com.freedomotic.events.MessageEvent;
 import com.freedomotic.exceptions.VariableResolutionException;
 import com.freedomotic.behaviors.BehaviorLogic;
+import com.freedomotic.exceptions.RepositoryException;
 import com.freedomotic.things.EnvObjectLogic;
-import com.freedomotic.things.ThingsRepository;
+import com.freedomotic.things.ThingRepository;
 import com.freedomotic.reactions.Command;
 import com.freedomotic.reactions.Reaction;
 import com.freedomotic.reactions.ReactionPersistence;
@@ -52,19 +51,19 @@ import java.util.logging.Logger;
  */
 public class TriggerCheck {
 
-    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
-    
+    private static final ExecutorService AUTOMATION_EXECUTOR = Executors.newCachedThreadPool();
+
     // Dependencies
     private final Autodiscovery autodiscovery;
     private final BusService busService;
-    private final ThingsRepository thingsRepository;
+    private final ThingRepository thingsRepository;
     private final BehaviorManager behaviorManager;
 
     @Inject
     TriggerCheck(
-            Autodiscovery autodiscovery, 
-            ThingsRepository thingsRepository, 
-            BusService busService, 
+            Autodiscovery autodiscovery,
+            ThingRepository thingsRepository,
+            BusService busService,
             BehaviorManager behaviorManager) {
         this.autodiscovery = autodiscovery;
         this.thingsRepository = thingsRepository;
@@ -84,55 +83,40 @@ public class TriggerCheck {
             throw new IllegalArgumentException("Event and Trigger cannot be null while performing trigger check");
         }
 
-        StringBuilder buff = new StringBuilder();
-
         try {
             if (trigger.isHardwareLevel()) { //hardware triggers can always fire
 
                 Trigger resolved = resolveTrigger(event, trigger);
 
                 if (resolved.isConsistentWith(event)) {
-                    buff.append("[CONSISTENT] hardware level trigger '").append(resolved.getName()).append("' ")
-                            .append(resolved.getPayload().toString()).append("'\nconsistent with received event '")
-                            .append(event.getEventName()).append("' ").append(event.getPayload().toString());
+                    LOG.log(Level.FINE, "[CONSISTENT] hardware level trigger ''{0}'' {1}''\nconsistent with received event ''{2}'' {3}", new Object[]{resolved.getName(), resolved.getPayload().toString(), event.getEventName(), event.getPayload().toString()});
                     applySensorNotification(resolved, event);
-                    LOG.fine(buff.toString());
                     return true;
                 }
             } else {
                 if (trigger.canFire()) {
                     Trigger resolved = resolveTrigger(event, trigger);
-
                     if (resolved.isConsistentWith(event)) {
-                        buff.append("[CONSISTENT] registred trigger '").append(resolved.getName()).append("' ")
-                                .append(resolved.getPayload().toString()).append("'\nconsistent with received event '")
-                                .append(event.getEventName()).append("' ").append(event.getPayload().toString());
+                        LOG.log(Level.FINE, "[CONSISTENT] registred trigger ''{0}'' {1}''\nconsistent with received event ''{2}'' {3}", new Object[]{resolved.getName(), resolved.getPayload().toString(), event.getEventName(), event.getPayload().toString()});
                         executeTriggeredAutomations(resolved, event);
-                        LOG.fine(buff.toString());
                         return true;
                     }
                 }
             }
 
             //if we are here the trigger is not consistent
-            buff.append("[NOT CONSISTENT] registred trigger '").append(trigger.getName()).append("' ")
-                    .append(trigger.getPayload().toString()).append("'\nnot consistent with received event '")
-                    .append(event.getEventName()).append("' ").append(event.getPayload().toString());
-            LOG.fine(buff.toString());
+            LOG.log(Level.FINE, "[NOT CONSISTENT] registred trigger ''{0}'' {1}''\nnot consistent with received event ''{2}'' {3}", new Object[]{trigger.getName(), trigger.getPayload().toString(), event.getEventName(), event.getPayload().toString()});
 
             return false;
         } catch (Exception e) {
-            LOG.severe(Freedomotic.getStackTraceInfo(e));
-
+            LOG.log(Level.SEVERE, "Error while performing trigger check", e);
             return false;
         }
     }
 
     private Trigger resolveTrigger(final EventTemplate event, final Trigger trigger) throws VariableResolutionException {
         Resolver resolver = new Resolver();
-        resolver.addContext("event.",
-                event.getPayload());
-
+        resolver.addContext("event.", event.getPayload());
         return resolver.resolve(trigger);
     }
 
@@ -152,10 +136,15 @@ public class TriggerCheck {
             affectedObjects = thingsRepository.findByAddress(protocol, address);
 
             if (affectedObjects.isEmpty()) { //there isn't an object with this protocol and address
-
+                LOG.log(Level.WARNING, "Found a candidate for things autodiscovery: thing ''{0}'' of type ''{1}''", new Object[]{name, clazz});
                 if ((clazz != null) && !clazz.isEmpty()) {
-                    EnvObjectLogic joined = autodiscovery.join(clazz, name, protocol, address);
-                    affectedObjects.add(joined);
+                    EnvObjectLogic joined;
+                    try {
+                        joined = autodiscovery.join(clazz, name, protocol, address, true);
+                        affectedObjects.add(joined);
+                    } catch (RepositoryException ex) {
+                        Logger.getLogger(TriggerCheck.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
@@ -180,11 +169,12 @@ public class TriggerCheck {
         if (!done) {
             LOG.log(Level.WARNING, "Hardware trigger {0} is not associated to any object.", resolved.getName());
         }
+        resolved.getPayload().clear();
+        event.getPayload().clear();
     }
 
     private void executeTriggeredAutomations(final Trigger trigger, final EventTemplate event) {
-        Runnable automation;
-        automation = new Runnable() {
+        Runnable automation = new Runnable() {
             @Override
             public void run() {
                 Iterator<Reaction> it = ReactionPersistence.iterator();
@@ -229,10 +219,11 @@ public class TriggerCheck {
                                     behaviorManager.parseCommand(resolvedCommand);
                                 } else {
                                     //if the event has a target object we include also object info
-                                    EnvObjectLogic targetObject
-                                            = thingsRepository.findByName(event.getProperty("object.name")).get(0);
+                                    List<EnvObjectLogic> targetObjects
+                                            = thingsRepository.findByName(event.getProperty("object.name"));
 
-                                    if (targetObject != null) {
+                                    if (!targetObjects.isEmpty()) {
+                                        EnvObjectLogic targetObject = targetObjects.get(0);
                                         commandResolver.addContext("current.",
                                                 targetObject.getExposedProperties());
                                         commandResolver.addContext("current.",
@@ -240,7 +231,6 @@ public class TriggerCheck {
                                     }
 
                                     final Command resolvedCommand = commandResolver.resolve(command);
-
                                     //it's not a user level command for objects (eg: turn it on), it is for another kind of actuator
                                     Command reply = busService.send(resolvedCommand); //blocking wait until executed
 
@@ -266,9 +256,7 @@ public class TriggerCheck {
                                 }
                             }
                         } catch (Exception e) {
-                            LOG.severe("Exception while merging event parameters into reaction.\n");
-                            LOG.severe(Freedomotic.getStackTraceInfo(e));
-
+                            LOG.log(Level.SEVERE, "Exception while merging event parameters into reaction.", e);
                             return;
                         }
 
@@ -286,43 +274,45 @@ public class TriggerCheck {
                 if (!found) {
                     LOG.log(Level.CONFIG, "No valid reaction bound to trigger ''{0}''", trigger.getName());
                 }
+                trigger.getPayload().clear();
+                event.getPayload().clear();
             }
 
-            /**
-             * Resolves the additional conditions of the reaction in input. Now
-             * it just takes the statement attribute and value and check if they
-             * are equal to the target behavior name and value respectively.
-             * This should be improved to allow also REGEX and other statement
-             * resolution.
-             */
-            private boolean checkAdditionalConditions(Reaction rea) {
-                boolean result = true;
-                for (Condition condition : rea.getConditions()) {
-                    //System.out.println("DEBUG: check condition " + condition.getTarget());
-                    EnvObjectLogic object = thingsRepository.findByName(condition.getTarget()).get(0);
-                    Statement statement = condition.getStatement();
-                    if (object != null) {
-                        BehaviorLogic behavior = object.getBehavior(statement.getAttribute());
-                        //System.out.println("DEBUG: " + object.getPojo().getName() + " "
-                        //+ " behavior: " + behavior.getName() + " " + behavior.getValueAsString());
-                        boolean eval = behavior.getValueAsString().equalsIgnoreCase(statement.getValue());
-                        if (statement.getLogical().equalsIgnoreCase("AND")) {
-                            result = result && eval;
-                            //System.out.println("DEBUG: result and: " + result + "(" + eval +")");
-                        } else {
-                            result = result || eval;
-                            //System.out.println("DEBUG: result or: " + result + "(" + eval +")");
-                        }
-                    } else {
-                        LOG.log(Level.WARNING, "Cannot test condition on unexistent object: {0}", condition.getTarget());
-                        return false;
-                    }
-                }
-                return result;
-            }
         };
 
-        EXECUTOR.execute(automation);
+        AUTOMATION_EXECUTOR.execute(automation);
+    }
+
+    /**
+     * Resolves the additional conditions of the reaction in input. Now it just
+     * takes the statement attribute and value and check if they are equal to
+     * the target behavior name and value respectively. This should be improved
+     * to allow also REGEX and other statement resolution.
+     */
+    private boolean checkAdditionalConditions(Reaction rea) {
+        boolean result = true;
+        for (Condition condition : rea.getConditions()) {
+            //System.out.println("DEBUG: check condition " + condition.getTarget());
+            EnvObjectLogic object = thingsRepository.findByName(condition.getTarget()).get(0);
+            Statement statement = condition.getStatement();
+            if (object != null) {
+                BehaviorLogic behavior = object.getBehavior(statement.getAttribute());
+                //System.out.println("DEBUG: " + object.getPojo().getName() + " "
+                //+ " behavior: " + behavior.getName() + " " + behavior.getValueAsString());
+                boolean eval = behavior.getValueAsString().equalsIgnoreCase(statement.getValue());
+                if (statement.getLogical().equalsIgnoreCase("AND")) {
+                    result = result && eval;
+                    //System.out.println("DEBUG: result and: " + result + "(" + eval +")");
+                } else {
+                    result = result || eval;
+                    //System.out.println("DEBUG: result or: " + result + "(" + eval +")");
+                }
+            } else {
+                LOG.log(Level.WARNING, "Cannot test condition on unexistent object: {0}", condition.getTarget());
+                return false;
+            }
+        }
+        return result;
     }
 
     private void notifyMessage(String message) {
@@ -330,6 +320,6 @@ public class TriggerCheck {
         event.setType("callout"); //display as callout on frontends
         busService.send(event);
     }
-    
+
     private static final Logger LOG = Logger.getLogger(TriggerCheck.class.getName());
 }
