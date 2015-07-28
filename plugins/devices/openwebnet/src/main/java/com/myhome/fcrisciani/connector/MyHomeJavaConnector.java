@@ -341,7 +341,6 @@ public class MyHomeJavaConnector {
                         {
                             response.append(c);
                             pluginRef.buildEventFromFrame(response.toString());
-                            pluginRef.LOG.log(Level.INFO, "Frame received from OWN gateway: " + response.toString());
                             response = new StringBuffer();
                             ci = 0;
                             c = ' ';

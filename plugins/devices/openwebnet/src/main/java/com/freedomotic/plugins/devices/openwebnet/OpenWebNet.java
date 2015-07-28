@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2009-2014 Freedomotic team http://freedomotic.com
+ * Copyright (c) 2009-2015 Freedomotic team http://freedomotic.com
  * 
 * This file is part of Freedomotic
  * 
@@ -80,12 +80,14 @@ public class OpenWebNet extends Protocol {
         ownMT = new OWNMonitorThread(this, host, port);
         // start thread 
         ownMT.start();
+        // syncronize the software with the system status
+        initSystem();
     }
 
     @Override
     protected void onRun() {
         // syncronizes the software with the system status
-        initSystem();
+        //initSystem();
     }
 
     @Override
@@ -672,9 +674,8 @@ public class OpenWebNet extends Protocol {
             if (objectName != null) {
                 event.getPayload().addStatement("object.name", objectName);
             }
-            //Freedomotic.logger.info("Frame " + frame + " " + "is " + messageType + " message. Notify it as Freedomotic event " + messageDescription); // for debug
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
-            System.out.println("Evento " + event.getPayload().size());
+            LOG.log(Level.INFO, "Frame received from OWN gateway: " + frame);
             notifyEvent(event);
         }
         //return;

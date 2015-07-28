@@ -6,7 +6,7 @@
         <payload>
             <statement>
                <logical>AND</logical>
-               <attribute>who</attribute>
+               <attribute>openwebnet.who</attribute>
                <operand>EQUALS</operand>
                <value>1</value>
             </statement>

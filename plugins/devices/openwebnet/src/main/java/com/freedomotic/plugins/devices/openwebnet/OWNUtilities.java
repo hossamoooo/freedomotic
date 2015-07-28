@@ -1,25 +1,22 @@
 /**
-*
-* Copyright (c) 2009-2014 Freedomotic team
-* http://freedomotic.com
-*
-* This file is part of Freedomotic
-*
-* This Program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2, or (at your option)
-* any later version.
-*
-* This Program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with Freedomotic; see the file COPYING. If not, see
-* <http://www.gnu.org/licenses/>.
-*/
-
+ *
+ * Copyright (c) 2009-2015 Freedomotic team http://freedomotic.com
+ *
+ * This file is part of Freedomotic
+ *
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2, or (at your option) any later version.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * 
+* You should have received a copy of the GNU General Public License along with
+ * Freedomotic; see the file COPYING. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
 package com.freedomotic.plugins.devices.openwebnet;
 
 import com.freedomotic.app.Freedomotic;
@@ -156,7 +153,7 @@ public class OWNUtilities {
     // create the frame to send to the own gateway
     public static String createFrame(Command c) {
         String frame = null;
-        String address [] = null;
+        String address[] = null;
         String who = null;
         String what = null;
         String where = null;
@@ -168,13 +165,13 @@ public class OWNUtilities {
         frame = "*" + who + "*" + what + "*" + where + "##";
         return (frame);
     }
-    
+
     public static String getDateTime() {
         Calendar calendar = new GregorianCalendar();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         return (sdf.format(calendar.getTime()));
     }
-    
+
     public static String convertTemperature(String temperature) {
         String temp = null;
         if (!temperature.substring(0).equalsIgnoreCase("0")) {
@@ -185,8 +182,8 @@ public class OWNUtilities {
         temp += temperature.substring(3);
         return (temp);
     }
-    
-     public static String dayName(String dayNumber) {
+
+    public static String dayName(String dayNumber) {
         String dayName = null;
         switch (new Integer(Integer.parseInt(dayNumber))) {
             case (0):
@@ -206,8 +203,8 @@ public class OWNUtilities {
         }
         return (dayName);
     }
-     
-     public static String gatewayModel(String modelNumber) {
+
+    public static String gatewayModel(String modelNumber) {
         String model = null;
         switch (new Integer(Integer.parseInt(modelNumber))) {
             case (2):
@@ -227,6 +224,4 @@ public class OWNUtilities {
         }
         return (model);
     }
-     
-     
 }
