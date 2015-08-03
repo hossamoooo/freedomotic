@@ -1,4 +1,4 @@
-package com.stevehobbs.freedomotic.xbmc;
+package com.freedomotic.plugins.devices.kodi;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

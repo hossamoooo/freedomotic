@@ -1,0 +1,27 @@
+<trigger>
+    <name>kodi change power</name>
+    <description>Kodi power</description>
+    <channel>app.event.sensor.protocol.read.kodi</channel>
+    <payload>
+        <payload>
+            <statement>
+                <logical>SET</logical>
+                <attribute>behaviorValue</attribute>
+                <operand>EQUALS</operand>
+                <value>@event.powered</value>
+            </statement>
+            <statement>
+                <logical>AND</logical>
+                <attribute>function</attribute>
+                <operand>EQUALS</operand>
+                <value>power</value>
+            </statement> 
+        </payload>
+    </payload>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <priority>0</priority>
+    <maxExecutions>-1</maxExecutions>
+    <numberOfExecutions>0</numberOfExecutions>
+    <suspensionTime>0</suspensionTime>
+</trigger>

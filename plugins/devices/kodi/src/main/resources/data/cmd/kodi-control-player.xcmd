@@ -1,0 +1,9 @@
+<command>
+    <name>Kodi: send play/pause/stop</name>
+    <receiver>app.actuators.mediacenter.kodi.in</receiver>
+    <description>send a play/pause/stop command to kodi</description>
+    <hardwareLevel>true</hardwareLevel>
+    <properties>
+        <properties/>
+    </properties>
+</command>

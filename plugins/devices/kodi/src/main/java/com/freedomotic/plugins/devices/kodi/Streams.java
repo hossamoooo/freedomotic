@@ -1,8 +1,24 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ *
+ * Copyright (c) 2009-2015 Freedomotic team http://freedomotic.com
+ *
+ * This file is part of Freedomotic
+ *
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2, or (at your option) any later version.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * Freedomotic; see the file COPYING. If not, see
+ * <http://www.gnu.org/licenses/>.
  */
-package com.stevehobbs.freedomotic.xbmc;
+
+package com.freedomotic.plugins.devices.kodi;
 
 import com.freedomotic.app.Freedomotic;
 import java.io.BufferedOutputStream;
@@ -18,7 +34,7 @@ import java.net.Socket;
  */
 public class Streams {
     //access to the streams needed in various places together with error handling
-    //eg for when xbmc systems are switched on/off
+    //eg for when Kodi systems are switched on/off
     Socket requestSocket;
     BufferedOutputStream outStream;
     BufferedInputStream inStream; // Using input stream as supposed to be faster than buffered???
@@ -30,7 +46,7 @@ public class Streams {
             outStream = new BufferedOutputStream(requestSocket.getOutputStream());
             outStream.flush();
             inStream = new BufferedInputStream(requestSocket.getInputStream(),8096); //use big buffer for input
-            Freedomotic.logger.severe(host + " : streams set up"); //leave in for now
+           // Freedomotic.LOG.severe(host + " : streams set up"); //leave in for now
         }
         
         catch(IOException ioException){
@@ -39,7 +55,7 @@ public class Streams {
             closeAllStreams(); //not sure this is good??
            
         }
-       // Successfully listening to xbmc json socket
+       // Successfully listening to Kodi json socket
 }
     
     public InputStream getInputStream(){

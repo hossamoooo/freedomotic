@@ -1,4 +1,24 @@
-package com.stevehobbs.freedomotic.xbmc;
+/**
+ *
+ * Copyright (c) 2009-2015 Freedomotic team http://freedomotic.com
+ *
+ * This file is part of Freedomotic
+ *
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2, or (at your option) any later version.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * Freedomotic; see the file COPYING. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+package com.freedomotic.plugins.devices.kodi;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonToken;
@@ -14,13 +34,13 @@ import java.io.*;
  *
  * @author steve
  */
-public class XbmcThread implements Runnable {
-    private XbmcSystem myXbmcSystem;
+public class KodiThread implements Runnable {
+    private KodiSystem myKodiSystem;
     OutputStream myOutputStream = null;
     InputStream myInputStream = null;
     
-    public XbmcThread(XbmcSystem myXbmcSystem) {
-        this.myXbmcSystem = myXbmcSystem;
+    public KodiThread(KodiSystem myKodiSystem) {
+        this.myKodiSystem = myKodiSystem;
     }
     
      @Override
@@ -35,7 +55,7 @@ public class XbmcThread implements Runnable {
                         Thread.sleep(4000); // only needed for retry logic
                     }
                     firstPass = false;
-                    Streams myStreams = new Streams(myXbmcSystem.getXbmcHost(),myXbmcSystem.getXbmcPort());
+                    Streams myStreams = new Streams(myKodiSystem.getKodiHost(),myKodiSystem.getKodiPort());
                     myInputStream = myStreams.getInputStream();
                     myOutputStream = myStreams.getOutputStream();
                     if(myOutputStream != null) { // Ping for power
@@ -44,11 +64,11 @@ public class XbmcThread implements Runnable {
                 }
             } 
             catch(InterruptedException ieException){
-                 //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : ieException from set up streams main loop"); //Not sure what to do here
+                 //Freedomotic.logger.severe(myKodiSystem.getKodiHost()+" : ieException from set up streams main loop"); //Not sure what to do here
                  myInputStream = null; //Stream has gone away get get new one
             }
             catch(IOException ioException){
-                //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : ioException from set up streams main loop"); //lost the stream probably, xbmc closed? 
+                //Freedomotic.logger.severe(myKodiSystem.getKodiHost()+" : ioException from set up streams main loop"); //lost the stream probably, Kodi closed? 
                 myInputStream = null; //Stream has gone away get get new one
             }
             
@@ -58,7 +78,7 @@ public class XbmcThread implements Runnable {
                 }
             } 
             catch (IOException ioException) {
-                //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : ioException from parseJson main loop"); //lost the stream probably, xbmc closed?
+                //Freedomotic.logger.severe(myKodiSystem.getKodiHost()+" : ioException from parseJson main loop"); //lost the stream probably, Kodi closed?
                 myInputStream = null; //Stream has gone away get get new one
             }
         } while (true);
@@ -81,7 +101,7 @@ public class XbmcThread implements Runnable {
             }
             
             catch(IOException ioException){ //lost the stream probably
-                //Freedomotic.logger.severe(myXbmcSystem.getXbmcHost()+" : IO Exception in parseJson"); //lost the stream probably, xbmc closed?
+                //Freedomotic.logger.severe(myKodiSystem.getKodiHost()+" : IO Exception in parseJson"); //lost the stream probably, Kodi closed?
                 throw new IOException( "lost connection or bad data");
             }
        }
@@ -126,35 +146,35 @@ public class XbmcThread implements Runnable {
         if (currentFieldName == null) {
         }
         else if (currentFieldName.equalsIgnoreCase("method")) {       
-            if (jsonField.equals("System.OnQuit")) { // XBMC system closing down in an orderly way
-                myXbmcSystem.setXbmcPower("false");
+            if (jsonField.equals("System.OnQuit")) { // Kodi system closing down in an orderly way
+                myKodiSystem.setKodiPower("false");
             } else if (jsonField.equals("Player.OnPlay")) {
-                myXbmcSystem.setXbmcMethod("Play");
+                myKodiSystem.setKodiMethod("Play");
             } else if (jsonField.equals("Player.OnPause")) {
-                myXbmcSystem.setXbmcMethod("Pause");
-            } else if (jsonField.equals("Player.OnStop")) { // Something stopped playing, xbmc includes the type, not the player
-                myXbmcSystem.setXbmcMethod("Stop");
+                myKodiSystem.setKodiMethod("Pause");
+            } else if (jsonField.equals("Player.OnStop")) { // Something stopped playing, Kodi includes the type, not the player
+                myKodiSystem.setKodiMethod("Stop");
             }
                 
         } else if (currentFieldName.equalsIgnoreCase("type")) { 
                 if (jsonField.equalsIgnoreCase("song")) {
-                    myXbmcSystem.setXbmcPlayer("0");
+                    myKodiSystem.setKodiPlayer("0");
                 } else if (jsonField.equalsIgnoreCase("movie")) {
-                    myXbmcSystem.setXbmcPlayer("1");
+                    myKodiSystem.setKodiPlayer("1");
                 } else if (jsonField.equalsIgnoreCase("episode")) {
-                    myXbmcSystem.setXbmcPlayer("1");
+                    myKodiSystem.setKodiPlayer("1");
                 }  else if (jsonField.equalsIgnoreCase("unknown")) {
-                    myXbmcSystem.setXbmcPlayer("1");
+                    myKodiSystem.setKodiPlayer("1");
                 } else if (jsonField.equalsIgnoreCase("picture")) {
-                    myXbmcSystem.setXbmcPlayer("2");
+                    myKodiSystem.setKodiPlayer("2");
                 }                                              
         
         } else if (currentFieldName.equalsIgnoreCase("playerid")) { 
-                myXbmcSystem.setXbmcPlayer(jsonField);
+                myKodiSystem.setKodiPlayer(jsonField);
         
-        } else if ((countField == 3 ) && (currentFieldName.equalsIgnoreCase("id"))) {  // id in this position means a response from xbmc
+        } else if ((countField == 3 ) && (currentFieldName.equalsIgnoreCase("id"))) {  // id in this position means a response from Kodi
             if (jsonField.equalsIgnoreCase("pong")) {
-                myXbmcSystem.setXbmcPower("true");
+                myKodiSystem.setKodiPower("true");
             }
         }
         
@@ -164,32 +184,32 @@ public class XbmcThread implements Runnable {
     private void processJson ()  {
         ProtocolRead event; 
         
- //       Freedomotic.logger.severe("xbmcPower = " + myXbmcSystem.getXbmcPower() + " | xbmcMethod = " + myXbmcSystem.getXbmcMethod() + " | xbmcPlayer = " + myXbmcSystem.getXbmcPlayer()); 
+ //       Freedomotic.logger.severe("KodiPower = " + myKodiSystem.getKodiPower() + " | KodiMethod = " + myKodiSystem.getKodiMethod() + " | KodiPlayer = " + myKodiSystem.getKodiPlayer()); 
    
-        if ((!myXbmcSystem.getXbmcMethod().equalsIgnoreCase("")) && (!myXbmcSystem.getXbmcPlayer().equalsIgnoreCase(""))) {
-            event = new ProtocolRead(this, "xbmc", myXbmcSystem.getXbmcHost());
-            event.addProperty("object.name", "XBMC-" + myXbmcSystem.getXbmcName());
-            event.addProperty("object.class", "XBMC");
-            event.addProperty("function", "player" + myXbmcSystem.getXbmcPlayer());
-            event.addProperty("xbmcplayer" + myXbmcSystem.getXbmcPlayer(),myXbmcSystem.getXbmcMethod());
+        if ((!myKodiSystem.getKodiMethod().equalsIgnoreCase("")) && (!myKodiSystem.getKodiPlayer().equalsIgnoreCase(""))) {
+            event = new ProtocolRead(this, "kodi", myKodiSystem.getKodiHost());
+            event.addProperty("object.name", "kodi-" + myKodiSystem.getKodiName());
+            event.addProperty("object.class", "kodi");
+            event.addProperty("function", "player" + myKodiSystem.getKodiPlayer());
+            event.addProperty("kodiplayer" + myKodiSystem.getKodiPlayer(),myKodiSystem.getKodiMethod());
             Freedomotic.sendEvent(event);
         } 
         if (true) {  // always send a power status?
-            event = new ProtocolRead(this, "xbmc", myXbmcSystem.getXbmcHost());
-            event.addProperty("powered",myXbmcSystem.getXbmcPower());
-            event.addProperty("object.name", "XBMC-"+myXbmcSystem.getXbmcName());
-            event.addProperty("object.class", "XBMC");
+            event = new ProtocolRead(this, "kodi", myKodiSystem.getKodiHost());
+            event.addProperty("powered",myKodiSystem.getKodiPower());
+            event.addProperty("object.name", "kodi-"+myKodiSystem.getKodiName());
+            event.addProperty("object.class", "kodi");
             event.addProperty("function", "power"); 
             Freedomotic.sendEvent(event);
         }
-        myXbmcSystem.setXbmcMethod("");
-        myXbmcSystem.setXbmcPlayer("");
+        myKodiSystem.setKodiMethod("");
+        myKodiSystem.setKodiPlayer("");
     }
     
     private void sendJsonPing() throws IOException {  // used for power detection on startup
         JsonFactory factory = new JsonFactory();
- 
-        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream);
+         
+        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream, JsonEncoding.UTF8);
         jsonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
         
         jsonGenerator.writeStartObject();
@@ -203,8 +223,8 @@ public class XbmcThread implements Runnable {
     
      private void getActivePlayers() throws IOException {  // works but not needed?
         JsonFactory factory = new JsonFactory();
- 
-        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream);
+        
+        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream, JsonEncoding.UTF8);
         jsonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
         jsonGenerator.writeStartObject();
         jsonGenerator.writeStringField("jsonrpc", "2.0");
@@ -218,7 +238,7 @@ public class XbmcThread implements Runnable {
      private void getPlayerStatus() throws IOException {   // WIP - may need it for startup condition?
         JsonFactory factory = new JsonFactory();
  
-        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream);
+        JsonGenerator jsonGenerator = factory.createJsonGenerator(myOutputStream, JsonEncoding.UTF8);
         jsonGenerator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET); //stop jasonGenerator.close from closing stream
         
         jsonGenerator.writeStartObject();

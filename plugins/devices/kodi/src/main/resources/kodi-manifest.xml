@@ -1,10 +1,10 @@
 <config>
     <properties>
-        <property name="name" value="xbmc"/>
-        <property name="description" value="A plugin to detect the status of xbmc devices and trigger events"/>
-        <property name="protocol.name" value="xbmc"/>
+        <property name="name" value="kodi"/>
+        <property name="description" value="A plugin to detect the status of kodi devices and trigger events"/>
+        <property name="protocol.name" value="kodi"/>
         <property name="category" value="mediacenter"/>
-        <property name="short-name" value="xbmc"/>
+        <property name="short-name" value="kodi"/>
     </properties>
     <tuples>
 	<tuple>
