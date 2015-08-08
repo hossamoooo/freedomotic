@@ -1,7 +1,7 @@
 <command>
   <name>Turn off OWN light</name>
   <receiver>app.actuators.protocol.openwebnet.in</receiver>
-  <description>An OWN light will turn off</description>
+  <description>Turn off OWN light</description>
   <hardwareLevel>true</hardwareLevel>
   <delay>0</delay>
   <timeout>0</timeout>

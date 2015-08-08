@@ -1,7 +1,7 @@
 <command>
   <name>Dim OWN light</name>
   <receiver>app.actuators.protocol.openwebnet.in</receiver>
-  <description>An OWN light will dimm</description>
+  <description>Dim OWN light</description>
   <hardwareLevel>true</hardwareLevel>
   <delay>0</delay>
   <timeout>0</timeout>

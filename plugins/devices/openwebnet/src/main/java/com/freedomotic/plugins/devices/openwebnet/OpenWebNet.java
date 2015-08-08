@@ -134,6 +134,7 @@ public class OpenWebNet extends Protocol {
         String who = null;
         String what = null;
         String where = null;
+        String dimension = null;
         String objectClass = null;
         String objectName = null;
         String messageType = null;
@@ -164,6 +165,7 @@ public class OpenWebNet extends Protocol {
             frameParts = frame.split("\\*"); // * is reserved so it must be escaped 
             who = frameParts[0];
             where = frameParts[1];
+            dimension = frameParts[2];
             objectClass = null;
             objectName = who + "*" + where;
             event = new ProtocolRead(this, "openwebnet", who + "*" + where); // LIGHTING if (who.equalsIgnoreCase("1")) {
@@ -254,12 +256,15 @@ public class OpenWebNet extends Protocol {
             // TERMOREGULATION 
             if (who.equalsIgnoreCase("4")) {
                 String temperature = null;
-                if (frameParts[3].equalsIgnoreCase("0")) {
+                // temperature read value
+                if (dimension.equalsIgnoreCase("0")) {
+                    objectClass = "Thermometer";
                     temperature = frameParts[3];
-                    temperature = OWNUtilities.convertTemperature(temperature);
-                    messageDescription = "Temperature value";
+                    //temperature = OWNUtilities.convertTemperature(temperature);
+                    messageDescription = "Temperature read value";
                     if (temperature != null) {
-                        event.getPayload().addStatement("temperature", temperature);
+                        event.getPayload().addStatement("openwebnet.temperature", temperature);
+                        event.getPayload().addStatement("object.class", objectClass);
                     }
                 }
             }
@@ -410,10 +415,10 @@ public class OpenWebNet extends Protocol {
             if (messageType != null) {
                 event.getPayload().addStatement("openwebnet.messageType", messageType);
             }
+            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
+            LOG.log(Level.INFO, "Frame received from OWN gateway: " + frame);
             // notify event
             notifyEvent(event);
-            OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
-
         }
 
 

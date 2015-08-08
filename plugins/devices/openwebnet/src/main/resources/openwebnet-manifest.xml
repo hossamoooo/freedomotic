@@ -17,6 +17,10 @@
             <property name="turn off" value="Turn off OWN light"/>
             <property name="set brightness" value="Dim OWN light"/>
         </tuple>
+        <tuple>
+            <property name="object.class" value="Thermometer"/>
+            <property name="temperature" value="OWN protocol reads a temperature value"/>
+        </tuple>
     </tuples>
 
 </config>
