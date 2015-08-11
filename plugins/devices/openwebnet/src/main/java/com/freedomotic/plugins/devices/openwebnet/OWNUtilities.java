@@ -152,20 +152,42 @@ public class OWNUtilities {
 
     // create the frame to send to the own gateway
     public static String createFrame(Command c) {
-        String frame = null;
+        String frameToSend = null;
         String address[] = null;
         String who = null;
         String what = null;
         String where = null;
+        String commandType = null;
+        String dimension = null;
+        String frame = null;
 
-        who = c.getProperty("who");
-        what = c.getProperty("what");
-        address = c.getProperty("address").split("\\*");
-        where = address[1];
-        frame = "*" + who + "*" + what + "*" + where + "##";
-        return (frame);
+        commandType = c.getProperty("command-type");
+
+        switch (commandType) {
+            case "command": {
+                who = c.getProperty("who");
+                what = c.getProperty("what");
+                address = c.getProperty("address").split("\\*");
+                where = address[1];
+                frameToSend = "*" + who + "*" + what + "*" + where + "##";
+                break;
+            }
+            case "request": {
+                where = c.getProperty("address");
+                dimension = c.getProperty("dimension");
+                frameToSend = "#" + where + "*" + dimension + "##";
+                break;
+            }
+            case "custom": {
+                frame = c.getProperty("frame");
+                frameToSend = frame;
+                break;
+            }
+        }
+        return (frameToSend);
     }
 
+    
     public static String getDateTime() {
         Calendar calendar = new GregorianCalendar();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");

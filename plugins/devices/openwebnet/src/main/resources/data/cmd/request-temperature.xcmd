@@ -7,7 +7,7 @@
   <timeout>0</timeout>
   <properties>
     <properties>
-      <property name="command-type" value="request-dimension"/>
+      <property name="command-type" value="request"/>
       <property name="address" value="@owner.object.address"/>
       <property name="object" value="@owner.object.name"/> 
       <property name="who" value="4"/>

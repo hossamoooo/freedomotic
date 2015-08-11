@@ -7,9 +7,9 @@
   <timeout>0</timeout>
   <properties>
     <properties>
-      <property name="protocol" value="openwebnet"/>
+      <property name="command-type" value="command"/>
       <property name="address" value="@owner.object.address"/>
-      <property name="object" value="@event.object.name"/> 
+      <property name="object" value="@owner.object.name"/> 
       <property name="who" value="1"/>
       <property name="what" value="= if (@owner.object.behavior.brightness &lt;= 20) what=2; else what=Math.floor(@owner.object.behavior.brightness/10).toString(); "/>
     </properties>

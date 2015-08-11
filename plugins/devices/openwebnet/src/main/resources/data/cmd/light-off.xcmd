@@ -7,9 +7,9 @@
   <timeout>0</timeout>
   <properties>
     <properties>
-      <property name="protocol" value="openwebnet"/>
+      <property name="command-type" value="command"/>
       <property name="address" value="@owner.object.address"/>
-      <property name="object" value="@event.object.name"/> 
+      <property name="object" value="@owner.object.name"/> 
       <property name="who" value="1"/>
       <property name="what" value="0"/>
     </properties>
