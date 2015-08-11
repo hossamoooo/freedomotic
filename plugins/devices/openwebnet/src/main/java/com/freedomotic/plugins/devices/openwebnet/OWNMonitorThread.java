@@ -17,7 +17,6 @@
  * Freedomotic; see the file COPYING. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-
 package com.freedomotic.plugins.devices.openwebnet;
 
 import com.myhome.fcrisciani.connector.MyHomeJavaConnector;
@@ -36,14 +35,29 @@ public class OWNMonitorThread extends Thread {
     private Integer port = 0;
 
     public void run() {
-
         try {
             myPlant.startMonitoring();
-            myPlant.readMonitoring(pluginReference);
+            while (true) {
+                try {
+                    String readFrame = myPlant.readMonitoring();
+                    pluginReference.LOG.log(Level.INFO, "Received frame ''{0}'' ", readFrame);
+                    pluginReference.buildEventFromFrame(readFrame);
+                } catch (InterruptedException ex) {
+                    pluginReference.LOG.log(Level.SEVERE, "Monitoring interrupted for: " + ex.getLocalizedMessage(), ex);
+                }
+            }
+            // use new nethod readMonitoring(pluginReference)  
+            //  try {
+            //      myPlant.startMonitoring();
+            //      myPlant.readMonitoring(pluginReference);
+            //  } catch (IOException ex) {
+            //  } catch (InterruptedException ex) {
+            //  }
+            //  }
         } catch (IOException ex) {
-        } catch (InterruptedException ex) {
-            Logger.getLogger(OWNMonitorThread.class.getName()).log(Level.SEVERE, null, ex);
+            pluginReference.LOG.log(Level.SEVERE, "IOException during startMonitoring() " + ex.getLocalizedMessage(), ex);
         }
+
     }
 
     public OWNMonitorThread(OpenWebNet pluginReference, String ipAddress, Integer port) {
