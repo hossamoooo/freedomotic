@@ -1,10 +1,10 @@
 <com.freedomotic.model.object.EnvObject>
-  <name>XBMC</name>
-  <description>An xbmc media centre</description>
+  <name>Kodi</name>
+  <description>A Kodi media centre</description>
   <actAs>unimplemented</actAs>
   <type>EnvObject.ElectricDevice.XBMC</type>
-  <hierarchy>com.stevehobbs.xbmc.object.XBMC</hierarchy> 
-  <protocol>xbmc</protocol>
+  <hierarchy>com.freedomotic.things.impl.Kodi</hierarchy> 
+  <protocol>kodi</protocol>
   <phisicalAddress>unknown</phisicalAddress>
   <behaviors>
     <com.freedomotic.model.object.BooleanBehavior>
@@ -16,8 +16,8 @@
       <value>false</value>
     </com.freedomotic.model.object.BooleanBehavior>
     <com.freedomotic.model.object.ListBehavior>
-      <name>xbmcplayer0</name>
-      <description>XBMC Player Active</description>
+      <name>kodiplayer0</name>
+      <description>Kodi Player Active</description>
       <active>true</active>
       <priority>-1</priority>
       <selected>0</selected>
@@ -28,8 +28,8 @@
       </list>
     </com.freedomotic.model.object.ListBehavior>
 <com.freedomotic.model.object.ListBehavior>
-      <name>xbmcplayer1</name>
-      <description>XBMC Player Active</description>
+      <name>kodiplayer1</name>
+      <description>Kodi Player Active</description>
       <active>true</active>
       <priority>-1</priority>
       <selected>0</selected>
@@ -40,8 +40,8 @@
       </list>
     </com.freedomotic.model.object.ListBehavior>
 <com.freedomotic.model.object.ListBehavior>
-      <name>xbmcplayer2</name>
-      <description>XBMC Player Active</description>
+      <name>kodiplayer2</name>
+      <description>Kodi Player Active</description>
       <active>true</active>
       <priority>-1</priority>
       <selected>0</selected>
@@ -58,7 +58,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-off.png</icon>
+      <icon>kodi-off.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -74,7 +74,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-on.png</icon>
+      <icon>kodi-on.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -90,7 +90,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-video-play.png</icon>
+      <icon>kodi-video-play.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -106,7 +106,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-video-pause.png</icon>
+      <icon>kodi-video-pause.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -122,7 +122,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-music-play.png</icon>
+      <icon>kodi-music-play.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -138,7 +138,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-music-pause.png</icon>
+      <icon>kodi-music-pause.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -154,7 +154,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-photo-play.png</icon>
+      <icon>kodi-photo-play.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -170,7 +170,7 @@
       <intersecable>false</intersecable>
       <offset x="0" y="0"/>
       <rotation>0.0</rotation>
-      <icon>xbmc-photo-pause.png</icon>
+      <icon>kodi-photo-pause.png</icon>
       <fillColor>#000000</fillColor>
       <textColor>#000000</textColor>
       <borderColor>#000000</borderColor>
@@ -185,9 +185,9 @@
   <actions>
 	<property name="turn on" value="Execute it successfully"/>
     	<property name="turn off" value="Execute it successfully"/>
-    	<property name="set xbmcplayer0" value="XBMC: send play/pause/stop"/>
-	<property name="set xbmcplayer1" value="XBMC: send play/pause/stop"/>
-	<property name="set xbmcplayer2" value="XBMC: send play/pause/stop"/>
+    	<property name="set kodiplayer0" value="Kodi: send play/pause/stop"/>
+	<property name="set kodiplayer1" value="Kodi: send play/pause/stop"/>
+	<property name="set kodiplayer2" value="Kodi: send play/pause/stop"/>
   </actions>
   <triggers>
     <property name="xbmc change power" value="powered"/>
