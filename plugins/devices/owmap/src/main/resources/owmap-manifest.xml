@@ -1,8 +1,9 @@
 <config>
     <properties>
-        <property name="description" value="Weather Forecasts from OpenWeatherMap"/>
+        <property name="description" value="OpenWeatherMap plugin"/>
         <property name="category" value="weather"/>
-        <property name="short-name" value="weather-forecasts"/>
+        <property name="short-name" value="owmap"/>
+        <property name="protocol.name" value="owmap"/>
         <property name="time-between-reads" value="50000"/>
         <property name="units" value="METRIC"/>
         <property name="city-name" value="Rome"/>

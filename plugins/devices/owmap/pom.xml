@@ -8,9 +8,9 @@
         <version>5.6-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>    
-    <artifactId>weather-forecasts</artifactId>
+    <artifactId>owmap</artifactId>
     <packaging>jar</packaging>
-    <name>weather-forecasts</name>
+    <name>owmap</name>
     <version>3.0</version>
     <developers>
         <developer>

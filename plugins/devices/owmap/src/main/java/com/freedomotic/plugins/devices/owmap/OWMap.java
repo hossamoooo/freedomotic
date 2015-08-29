@@ -17,7 +17,7 @@
  * Freedomotic; see the file COPYING. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.freedomotic.plugins.devices.weatherforecasts;
+package com.freedomotic.plugins.devices.owmap;
 
 import com.freedomotic.api.EventTemplate;
 import com.freedomotic.api.Protocol;
@@ -35,17 +35,17 @@ import net.aksingh.owmjapis.CurrentWeather;
 import net.aksingh.owmjapis.OpenWeatherMap;
 import org.json.JSONException;
 
-public class WeatherForecasts
+public class OWMap
         extends Protocol {
 
-    private static final Logger LOG = Logger.getLogger(WeatherForecasts.class.getName());
+    private static final Logger LOG = Logger.getLogger(OWMap.class.getName());
     private final int POLLING_WAIT;
     final String UNITS;
     final String CITY_NAME;
     private OpenWeatherMap owm;
 
-    public WeatherForecasts() {
-        super("Weather Forecasts", "/weather-forecasts/weather-forecasts-manifest.xml");
+    public OWMap() {
+        super("OpenWeatherMap", "/owmap/owmap-manifest.xml");
         POLLING_WAIT = configuration.getIntProperty("time-between-reads", 50000);
         UNITS = configuration.getStringProperty("units", "metric");
         CITY_NAME = configuration.getStringProperty("city-name", "Rome");
@@ -76,12 +76,12 @@ public class WeatherForecasts
         // declaring object of "OpenWeatherMap" class
         owm = new OpenWeatherMap("");
         owm.setUnits(OpenWeatherMap.Units.valueOf(UNITS));
-        LOG.log(Level.INFO, "Weather Forecasts plugin is started");
+        LOG.log(Level.INFO, "OpenWeatherMap plugin is started");
     }
 
     @Override
     protected void onStop() {
-        LOG.log(Level.INFO, "Weather Forecasts plugin is stopped ");
+        LOG.log(Level.INFO, "OpenWeatherMap plugin is stopped ");
     }
 
     @Override
@@ -109,7 +109,9 @@ public class WeatherForecasts
         if (cwd.isValid()) {
 
             //building the event
-            ProtocolRead event = new ProtocolRead(this, "weather-forecasts", cwd.getCityName());
+            ProtocolRead event = new ProtocolRead(this, "owmap", cwd.getCityName());
+            event.addProperty("object.name", cwd.getCityName() + " Weather");
+            event.addProperty("object.class", "Weather");
             //adding some information to the event
             if (cwd.hasCityName()) {
                 event.getPayload().addStatement("city-name", cwd.getCityName());
