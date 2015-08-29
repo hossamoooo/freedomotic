@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2009-2014 Freedomotic team http://freedomotic.com
+ * Copyright (c) 2009-2015 Freedomotic team http://freedomotic.com
  *
  * This file is part of Freedomotic
  *
@@ -42,11 +42,12 @@ import java.util.logging.Logger;
  */
 public class TrackingReadFile extends Protocol {
 
-    OutputStream out;
-    boolean connected = false;
-    final int SLEEP_TIME = 1000;
-    int NUM_MOTE = 3;
-    ArrayList<WorkerThread> workers = new ArrayList<WorkerThread>();
+    private static final Logger LOG = Logger.getLogger(TrackingReadFile.class.getName());
+    private OutputStream out;
+    private boolean connected = false;
+    private final int SLEEP_TIME = 1000;
+    private int NUM_MOTE = 1;
+    private ArrayList<WorkerThread> workers = null;
 
     /**
      *
@@ -58,9 +59,10 @@ public class TrackingReadFile extends Protocol {
 
     @Override
     public void onStart() {
-        NUM_MOTE = Integer.valueOf(getApi().getConfig().getIntProperty("KEY_SIMULATED_PERSON_COUNT", 3));
+        NUM_MOTE = configuration.getIntProperty("simulated-person-count", 1);
+        workers = new ArrayList<WorkerThread>();
 
-        for (int i = 0; i < NUM_MOTE; i++) {
+        for (int i = 1; i <= NUM_MOTE; i++) {
             readMoteFile(i);
         }
 
@@ -74,8 +76,8 @@ public class TrackingReadFile extends Protocol {
         ArrayList<Coordinate> coord = new ArrayList<Coordinate>();
 
         try {
-            File f = new File(Info.PATHS.PATH_PLUGINS_FOLDER + "/mote-" + n + ".txt");
-            System.out.println("\nReading coordinates from file " + f.getAbsolutePath());
+            File f = new File(Info.PATHS.PATH_DEVICES_FOLDER + "/simulation/mote-" + n + ".txt");
+            LOG.log(Level.INFO, "Reading coordinates from file " + f.getAbsolutePath());
             fr = new FileReader(f);
 
             BufferedReader br = new BufferedReader(fr);
@@ -84,7 +86,7 @@ public class TrackingReadFile extends Protocol {
             while ((line = br.readLine()) != null) {
                 //tokenize string
                 StringTokenizer st = new StringTokenizer(line);
-                System.out.println("   Mote " + n + " coordinate added " + line);
+                LOG.log(Level.INFO, "Mote " + n + " coordinate added " + line);
 
                 Coordinate c = new Coordinate();
                 c.setId(n);
@@ -99,14 +101,14 @@ public class TrackingReadFile extends Protocol {
             WorkerThread wt = new WorkerThread(this, coord);
             workers.add(wt);
         } catch (FileNotFoundException ex) {
-            System.out.println("Coordinates file not found for mote " + n);
+            LOG.log(Level.SEVERE, "Coordinates file not found for mote " + n);
         } catch (IOException ex) {
-            Logger.getLogger(TrackingReadFile.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "IOException: " + ex);
         } finally {
             try {
                 fr.close();
             } catch (IOException ex) {
-                Logger.getLogger(TrackingReadFile.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, "IOException: " + ex);
             }
         }
     }
