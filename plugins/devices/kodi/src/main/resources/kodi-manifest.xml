@@ -8,22 +8,10 @@
     </properties>
     <tuples>
 	<tuple>
-		<property name = "System" value = "W7"/>
-		<property name = "XBMCHost" value = "W7"/>
-		<property name = "XBMCPort" value = "9090"/>
+		<property name = "System" value = "KodiServer"/>
+		<property name = "KodiHost" value = "192.168.0.107"/>
+		<property name = "KodiPort" value = "9090"/>
 		<property name = "Location" value = "Study"/>
-	</tuple>
-	<tuple>
-		<property name = "System" value = "Intel"/>
-		<property name = "XBMCHost" value = "Intel"/>
-		<property name = "XBMCPort" value = "9090"/>
-		<property name = "Location" value = "Living Room"/>
-	</tuple>
-	<tuple>
-		<property name = "System" value = "steve-mac"/>
-		<property name = "XBMCHost" value = "steve-mac"/>
-		<property name = "XBMCPort" value = "9090"/>
-		<property name = "Location" value = "Laptop"/>
 	</tuple>
     </tuples>
 </config>

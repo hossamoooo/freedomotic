@@ -8,7 +8,7 @@
                 <logical>SET</logical>
                 <attribute>behaviorValue</attribute>
                 <operand>EQUALS</operand>
-                <value>@event.xbmcplayer1</value>
+                <value>@event.kodiplayer1</value>
 	      </statement>
 	      <statement>
                 <logical>AND</logical>

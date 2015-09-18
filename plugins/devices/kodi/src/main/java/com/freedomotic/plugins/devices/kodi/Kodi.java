@@ -17,7 +17,6 @@
  * Freedomotic; see the file COPYING. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-
 package com.freedomotic.plugins.devices.kodi;
 
 import com.freedomotic.api.EventTemplate;
@@ -39,7 +38,7 @@ public class Kodi extends Protocol {
     public Kodi() {
         super("Kodi", "/kodi/kodi-manifest.xml");
         POLLING_WAIT = configuration.getIntProperty("time-between-reads", 2000); // Not sure if needed?
-        setPollingWait(POLLING_WAIT); //millisecs interval between hardware device status reads
+        setPollingWait(POLLING_WAIT); 
 
     }
 
@@ -58,23 +57,16 @@ public class Kodi extends Protocol {
             thisKodiSystem.getKodiThread().start();
         }
 
-        LOG.info("Kodi plugin is started");
+        LOG.info("Kodi plugin started");
     }
 
     @Override
     protected void onShowGui() {
-        /**
-         * uncomment the line below to add a GUI to this plugin the GUI can be
-         * started with a right-click on plugin list on the desktop frontend
-         * (it.freedomotic.jfrontend plugin)
-         */
         //bindGuiToPlugin(new Kodi(this));
     }
 
     @Override
     protected void onHideGui() {
-        //implement here what to do when the this plugin GUI is closed
-        //for example you can change the plugin description
         setDescription("My GUI is now hidden");
     }
 
@@ -88,7 +80,7 @@ public class Kodi extends Protocol {
         for (KodiSystem thisKodiSystem : systemList) {
             thisHost = thisKodiSystem.getKodiHost();
             thisState = thisKodiSystem.getKodiThread().getState().toString();
-            // System.out.println("Host : "+ thisHost + " State : " + thisState); // just checking to see if any die
+            LOG.info("Kodi Host : " + thisHost + " State : " + thisState);
         }
 
     }
@@ -139,5 +131,4 @@ public class Kodi extends Protocol {
             }
         }
     }
-
 }
