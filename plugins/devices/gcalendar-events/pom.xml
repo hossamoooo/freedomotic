@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.freedomotic</groupId>
-        <artifactId>freedomotic</artifactId>
+        <artifactId>freedomotic-plugins</artifactId>
         <version>5.6-SNAPSHOT</version>
-        <relativePath>../../../</relativePath>
+        <relativePath>../../</relativePath>
     </parent>    
     <artifactId>gcalendar-events</artifactId>
     <packaging>jar</packaging>
@@ -44,7 +44,6 @@
         <freedomotic.marketplace.file>${project.artifactId}-${freedomotic.framework.required.major}.${freedomotic.framework.required.minor}.${freedomotic.framework.required.build}-${project.version}.${freedomotic.package.type}</freedomotic.marketplace.file>
         <freedomotic.marketplace.username></freedomotic.marketplace.username>
         <freedomotic.marketplace.password></freedomotic.marketplace.password>
-
     </properties>
     <dependencies>
         <dependency>
@@ -59,12 +58,21 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.openengsb.wrapped</groupId>
-            <artifactId>com.google.gdata-calendar</artifactId>
-            <version>1.41.5.w1</version>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-calendar</artifactId>
+            <version>v3-rev125-1.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-jetty</artifactId>
+            <version>1.20.0</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>

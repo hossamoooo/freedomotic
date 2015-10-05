@@ -1,0 +1,13 @@
+<config>
+    <!-- PLUGINS DEFAULT PARAMETERS -->
+    <properties>
+        <property name="name" value="Google Calendar UI"/>
+        <property name="description" value="Uses Google Calendar to define time based automations"/>
+        <property name="category" value="google"/>
+        <property name="short-name" value="calendar"/>
+        <property name="calendar-id" value="primary"/>
+        <property name="time-between-reads" value="3600000"/>
+    </properties>
+</config>
+
+                
