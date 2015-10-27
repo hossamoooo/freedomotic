@@ -117,16 +117,16 @@ public class OpenWebNet extends Protocol {
     private void initSystem() {
         //try {
         LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize LIGHTNING", LIGHTNING_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (inizialize LIGHTNING)");
+        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (initialize LIGHTNING)");
         ownMT.sendCommand(LIGHTNING_DIAGNOSTIC_FRAME, 1);
         LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize AUTOMATIONS", AUTOMATIONS_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (inizialize AUTOMATIONS)");
+        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (initialize AUTOMATIONS)");
         ownMT.sendCommand(AUTOMATIONS_DIAGNOSTIC_FRAME, 1);
         LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize ALARM", ALARM_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (inizialize ALARM)");
+        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (initialize ALARM)");
         ownMT.sendCommand(ALARM_DIAGNOSTIC_FRAME, 1);
         LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize POWER MANAGEMENT", POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (inizialize POWER MANAGEMENT)");
+        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (initialize POWER MANAGEMENT)");
         ownMT.sendCommand(POWER_MANAGEMENT_DIAGNOSTIC_FRAME, 1);
     }
 
@@ -256,14 +256,27 @@ public class OpenWebNet extends Protocol {
             // TERMOREGULATION 
             if (who.equalsIgnoreCase("4")) {
                 String temperature = null;
+                String setpoint = null;
                 // temperature read value
                 if (dimension.equalsIgnoreCase("0")) {
-                    objectClass = "Thermometer";
-                    temperature = frameParts[3];
-                    //temperature = OWNUtilities.convertTemperature(temperature);
+                    objectClass = "Thermostat";
+                    temperature = frameParts[3].substring(1,3);
                     messageDescription = "Temperature read value";
                     if (temperature != null) {
                         event.getPayload().addStatement("openwebnet.temperature", temperature);
+                        event.getPayload().addStatement("openwebnet.dimension", dimension);
+                        event.getPayload().addStatement("object.class", objectClass);
+                    }
+                }
+
+                // setpoint read value
+                if (dimension.equalsIgnoreCase("12")) {
+                    objectClass = "Thermostat";
+                    setpoint = frameParts[3].substring(1,3);
+                    messageDescription = "Setpoint read value";
+                    if (temperature != null) {
+                        event.getPayload().addStatement("openwebnet.setpoint", setpoint);
+                        event.getPayload().addStatement("openwebnet.dimension", dimension);
                         event.getPayload().addStatement("object.class", objectClass);
                     }
                 }
@@ -405,7 +418,9 @@ public class OpenWebNet extends Protocol {
                 }
             }
 
-            event.getPayload().addStatement("openwebnet.who", who);
+            if (who != null) {
+                event.getPayload().addStatement("openwebnet.who", who);
+            }
             if (where != null) {
                 event.getPayload().addStatement("openwebnet.where", where);
             }
@@ -415,6 +430,11 @@ public class OpenWebNet extends Protocol {
             if (messageType != null) {
                 event.getPayload().addStatement("openwebnet.messageType", messageType);
             }
+            if (objectName != null) {
+                event.getPayload().addStatement("object.name", objectName);
+                event.getPayload().addStatement("autodiscovery.allow-clones", "false");
+            }
+
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
             LOG.log(Level.INFO, "Frame received from OWN gateway: " + frame);
             // notify event
@@ -678,6 +698,7 @@ public class OpenWebNet extends Protocol {
 
             if (objectName != null) {
                 event.getPayload().addStatement("object.name", objectName);
+                event.getPayload().addStatement("autodiscovery.allow-clones", "false");
             }
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
             LOG.log(Level.INFO, "Frame received from OWN gateway: " + frame);

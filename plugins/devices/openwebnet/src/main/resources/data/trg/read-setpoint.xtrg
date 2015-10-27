@@ -1,6 +1,6 @@
 <trigger>
-    <name>OWN protocol reads a temperature value</name>
-    <description>OWN protocol reads a temperature value</description>
+    <name>OWN protocol reads a setpoint value</name>
+    <description>OWN protocol reads a setpoint value</description>
     <channel>app.event.sensor.protocol.read.openwebnet</channel>
     <payload>
         <payload>
@@ -14,7 +14,7 @@
                <logical>AND</logical>
                <attribute>openwebnet.dimension</attribute>
                <operand>EQUALS</operand>
-               <value>0</value>
+               <value>12</value>
             </statement>
             <statement>
                <logical>SET</logical>
