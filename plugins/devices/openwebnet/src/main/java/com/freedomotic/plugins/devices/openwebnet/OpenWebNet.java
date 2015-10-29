@@ -40,7 +40,8 @@ public class OpenWebNet extends Protocol {
     public static final Logger LOG = Logger.getLogger(OpenWebNet.class.getName());
     private final String host = configuration.getProperty("host");
     private final Integer port = Integer.parseInt(configuration.getProperty("port"));
-    public OWNMonitorThread ownMT = null; // add getter method
+    //public OWNMonitorThread ownMT = null; // add getter method
+    public OWNMonitor ownMT = null; // add getter method
     private String address = null;
     private String frame = null;
     private ProtocolRead event = null;
@@ -77,17 +78,21 @@ public class OpenWebNet extends Protocol {
     public void onStart() {
         pluginGui = new OWNFrame(this);
         // create monitor session thread 
-        ownMT = new OWNMonitorThread(this, host, port);
+        //ownMT = new OWNMonitorThread(this, host, port);
         // start thread 
-        ownMT.start();
+        //ownMT.start();
         // syncronize the software with the system status
-        initSystem();
+        //initSystem();
     }
 
     @Override
     protected void onRun() {
-        // syncronizes the software with the system status
-        //initSystem();
+        // create monitor session thread 
+        ownMT = new OWNMonitor(this, host, port);
+        // start thread 
+        ownMT.startOWNMonitor();
+        // syncronize the software with the system status
+        initSystem();
     }
 
     @Override
