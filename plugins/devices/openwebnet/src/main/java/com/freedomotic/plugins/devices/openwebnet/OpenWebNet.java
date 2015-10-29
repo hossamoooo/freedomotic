@@ -46,7 +46,9 @@ public class OpenWebNet extends Protocol {
     private String frame = null;
     private ProtocolRead event = null;
     private OWNFrame pluginGui = null;
-
+    //recupero gestore connessioni
+    clientjava.connections.GestoreConnessioni handler = clientjava.connections.GestoreConnessioni.getInstance();
+    
     /*
      *
      * OWN Diagnostic Frames
@@ -83,14 +85,16 @@ public class OpenWebNet extends Protocol {
         //ownMT.start();
         // syncronize the software with the system status
         //initSystem();
+        handler.init(host, port, this);
+        handler.startMonitoring();
     }
 
     @Override
     protected void onRun() {
         // create monitor session thread 
-        ownMT = new OWNMonitor(this, host, port);
+        //ownMT = new OWNMonitor(this, host, port);
         // start thread 
-        ownMT.startOWNMonitor();
+        //ownMT.startOWNMonitor();
         // syncronize the software with the system status
         initSystem();
     }
@@ -99,7 +103,12 @@ public class OpenWebNet extends Protocol {
     public void onCommand(Command c) throws IOException, UnableToExecuteException {
         String frameToSend = OWNUtilities.createFrame(c);
         LOG.log(Level.INFO, "Trying to send frame ''{0}'' to OWN gateway", frameToSend);
-        ownMT.sendCommand(frameToSend, 1);
+        //ownMT.sendCommand(frameToSend, 1);
+        handler.inviaComandoOpen(frameToSend);
+    }
+    
+    public Logger getLogger() {
+        return LOG;
     }
 
     @Override
@@ -114,7 +123,8 @@ public class OpenWebNet extends Protocol {
 
     @Override
     public void onStop() {
-        ownMT.stopMonitoring();
+        //ownMT.stopMonitoring();
+        handler.stopMonitoring();
         this.setDescription("Plugin stopped");
     }
 
@@ -123,16 +133,17 @@ public class OpenWebNet extends Protocol {
         //try {
         LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize LIGHTNING", LIGHTNING_DIAGNOSTIC_FRAME);
         OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (initialize LIGHTNING)");
-        ownMT.sendCommand(LIGHTNING_DIAGNOSTIC_FRAME, 1);
-        LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize AUTOMATIONS", AUTOMATIONS_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (initialize AUTOMATIONS)");
-        ownMT.sendCommand(AUTOMATIONS_DIAGNOSTIC_FRAME, 1);
-        LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize ALARM", ALARM_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (initialize ALARM)");
-        ownMT.sendCommand(ALARM_DIAGNOSTIC_FRAME, 1);
-        LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize POWER MANAGEMENT", POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (initialize POWER MANAGEMENT)");
-        ownMT.sendCommand(POWER_MANAGEMENT_DIAGNOSTIC_FRAME, 1);
+        //ownMT.sendCommand(LIGHTNING_DIAGNOSTIC_FRAME, 1);
+        handler.inviaComandoOpen(LIGHTNING_DIAGNOSTIC_FRAME);
+        //LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize AUTOMATIONS", AUTOMATIONS_DIAGNOSTIC_FRAME);
+        //OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (initialize AUTOMATIONS)");
+        //ownMT.sendCommand(AUTOMATIONS_DIAGNOSTIC_FRAME, 1);
+        //LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize ALARM", ALARM_DIAGNOSTIC_FRAME);
+        //OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (initialize ALARM)");
+        //ownMT.sendCommand(ALARM_DIAGNOSTIC_FRAME, 1);
+        //LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize POWER MANAGEMENT", POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
+        //OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (initialize POWER MANAGEMENT)");
+        //ownMT.sendCommand(POWER_MANAGEMENT_DIAGNOSTIC_FRAME, 1);
     }
 
     public void buildEventFromFrame(String frame) {
@@ -265,7 +276,7 @@ public class OpenWebNet extends Protocol {
                 // temperature read value
                 if (dimension.equalsIgnoreCase("0")) {
                     objectClass = "Thermostat";
-                    temperature = frameParts[3].substring(1,3);
+                    temperature = frameParts[3].substring(1, 3);
                     messageDescription = "Temperature read value";
                     if (temperature != null) {
                         event.getPayload().addStatement("openwebnet.temperature", temperature);
@@ -277,7 +288,7 @@ public class OpenWebNet extends Protocol {
                 // setpoint read value
                 if (dimension.equalsIgnoreCase("12")) {
                     objectClass = "Thermostat";
-                    setpoint = frameParts[3].substring(1,3);
+                    setpoint = frameParts[3].substring(1, 3);
                     messageDescription = "Setpoint read value";
                     if (temperature != null) {
                         event.getPayload().addStatement("openwebnet.setpoint", setpoint);
