@@ -60,7 +60,7 @@ public class GestoreSocketComandi {
      */
     public boolean connect(String ip, int port, long password) {
         try {
-            //apro socket
+            //opens a socket
             pluginRef.getLogger().log(Level.CONFIG, "Tentativo connessione a " + ip + "  Port: " + port);
             socket = new Socket(ip, port);
 
@@ -72,7 +72,7 @@ public class GestoreSocketComandi {
             pluginRef.getLogger().log(Level.INFO, "Print Writer creato");
 
         } catch (IOException e) {
-            System.out.println("Errore nella connessione al server");
+            pluginRef.getLogger().log(Level.SEVERE, "Server connection error");
             this.disconnect();
         }
 
@@ -88,10 +88,9 @@ public class GestoreSocketComandi {
                 try {
                     readTh.join(); //aspetto di aver letto --> verrà copiata in responseLine
                 } catch (InterruptedException e1) {
-                    pluginRef.getLogger().log(Level.INFO, "----- ERRORE readThread.join() durante la connect:");
+                    pluginRef.getLogger().log(Level.SEVERE, "----- ERRORE readThread.join() durante la connect:");
                     e1.printStackTrace();
                 }
-
                 //riempito responseLine, a seconda
                 //dello stato in cui sono nel'handshake mi comporto diversamente
                 if (responseLine != null) {
@@ -111,8 +110,8 @@ public class GestoreSocketComandi {
                             setTimeout(0);
                         } else { //caso NACK
                             //se non mi connetto chiudo la socket
-                            System.out.println("--- Comunicazione TCP/IP con il server non riuscita.");
-                            logger.log(Level.CONFIG, "Chiudo la socket verso il server ");
+                            pluginRef.getLogger().log(Level.CONFIG, "--- Comunicazione TCP/IP con il server non riuscita.");
+                            pluginRef.getLogger().log(Level.CONFIG, "Chiudo la socket verso il server ");
                             this.disconnect();
                             break;
                         }
@@ -139,13 +138,13 @@ public class GestoreSocketComandi {
 
                         //2.6 se entro 30 sec non ricevo ACK -> chiudo la connessione
                         if (responseLine.equals(OWN.MSG_OPEN_OK)) {
-                            System.out.println("--- Stabilita sessione comandi con il server.");
+                            pluginRef.getLogger().log(Level.CONFIG, "--- Stabilita sessione comandi con il server.");
                             pluginRef.getLogger().log(Level.CONFIG, "Ricevuto ack, stato = 3");
                             stato = 3;
                             break;
                         } else {
-                            System.out.println("Impossibile connettersi!!");
-                            System.out.println("--- Sessione comandi con il server non stabilita.");
+                            pluginRef.getLogger().log(Level.CONFIG, "Impossibile connettersi!!");
+                            pluginRef.getLogger().log(Level.CONFIG, "--- Sessione comandi con il server non stabilita.");
                             //se non mi connetto chiudo la socket
                             pluginRef.getLogger().log(Level.INFO, "Chiudo la socket verso il server ");
                             this.disconnect();
@@ -160,7 +159,7 @@ public class GestoreSocketComandi {
                             stato = 3;
                             break;
                         } else {
-                            System.out.println("Impossibile connettersi!!");
+                            pluginRef.getLogger().log(Level.SEVERE, "Impossibile connettersi!!");
                             //se non mi connetto chiudo la socket
                             pluginRef.getLogger().log(Level.INFO, "Chiudo la socket verso il server ");
                             this.disconnect();
@@ -196,12 +195,9 @@ public class GestoreSocketComandi {
                 socket = null;
                 stato = 0;
                 pluginRef.getLogger().log(Level.CONFIG, "-----Socket chiusa correttamente-----");
-
-                System.out.println("--- Chiusa sessione comandi con il server.");
-
+                pluginRef.getLogger().log(Level.CONFIG, "--- Chiusa sessione comandi con il server.");
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                System.out.println("Errore Socket: <GestioneSocketComandi>");
+                pluginRef.getLogger().log(Level.CONFIG, "Errore Socket: <GestioneSocketComandi>");
                 e.printStackTrace();
             }
         }
@@ -226,12 +222,12 @@ public class GestoreSocketComandi {
             }
         } catch (Exception e) {
             pluginRef.getLogger().log(Level.CONFIG, "ERRORE nella creazione dell'oggetto OpenWebNet " + comandoOpen);
-            System.out.println("Eccezione in GestioneSocketComandi durante la creazione del'oggetto OpenWebNet");
+            pluginRef.getLogger().log(Level.CONFIG, "Eccezione in GestioneSocketComandi durante la creazione del'oggetto OpenWebNet");
             e.printStackTrace();
         }
 
         //3.1 invia il messaggio open e rimane in attesa della risposta (ACK/NACK) del server
-        System.out.println("Tx: " + comandoOpen);
+        pluginRef.getLogger().log(Level.INFO, "Tx: " + comandoOpen);
         output.write(comandoOpen);
         output.flush();
 
@@ -243,23 +239,21 @@ public class GestoreSocketComandi {
             try {
                 readTh.join();
             } catch (InterruptedException e1) {
-                // TODO Auto-generated catch block
-                System.out.println("----- ERRORE readThread.join() durante l'invio comando:");
+                pluginRef.getLogger().log(Level.SEVERE, "----- ERRORE readThread.join() durante l'invio comando:");
                 e1.printStackTrace();
             }
 
             //3.2 la risposta può essere ACK(*#*1##) o NACK(*#*0##)
             if (responseLine != null) {
                 if (responseLine.equals(OWN.MSG_OPEN_OK)) {//ACK
-                    System.out.println("Rx: " + responseLine);
-                    System.out.println("Comando inviato correttamente");
-                    //if(!ClientFrame.mantieniSocket.isSelected()) this.disconnect();
+                    pluginRef.getLogger().log(Level.CONFIG, "Rx: " + responseLine);
+                    pluginRef.getLogger().log(Level.CONFIG, "Comando inviato correttamente");
                     this.disconnect();//chiudo connessione
                     return 0;
                     //break;
                 } else if (responseLine.equals(OWN.MSG_OPEN_KO)) {//NACK
-                    System.out.println("Rx: " + responseLine);
-                    System.out.println("Comando NON inviato correttamente");
+                    pluginRef.getLogger().log(Level.CONFIG, "Rx: " + responseLine);
+                    pluginRef.getLogger().log(Level.SEVERE, "Comando NON inviato correttamente");
                     //if(!ClientFrame.mantieniSocket.isSelected()) this.disconnect();
                     this.disconnect();//chiudo connessione
                     return 0;
@@ -268,22 +262,19 @@ public class GestoreSocketComandi {
                     //RICHIESTA STATO
                     System.out.println("Rx: " + responseLine);
                     if (responseLine == OWN.MSG_OPEN_OK) {
-                        System.out.println("Comando inviato correttamente");
-                        //if(!ClientFrame.mantieniSocket.isSelected()) this.disconnect();
+                        pluginRef.getLogger().log(Level.CONFIG, "Comando inviato correttamente");
                         this.disconnect();//chiudo connessione
                         return 0;
                         //break;
                     } else if (responseLine == OWN.MSG_OPEN_KO) {
-                        System.out.println("Comando NON inviato correttamente");
-                        //if(!ClientFrame.mantieniSocket.isSelected()) this.disconnect();
+                        pluginRef.getLogger().log(Level.CONFIG, "Comando NON inviato correttamente");
                         this.disconnect();//chiudo connessione
                         return 0;
                         //break;
                     }
                 }
             } else {
-                System.out.println("Impossibile inviare il comando");
-                //if(!ClientFrame.mantieniSocket.isSelected()) this.disconnect();
+                pluginRef.getLogger().log(Level.SEVERE, "Impossibile inviare il comando");
                 this.disconnect();//chiudo connessione
                 return 1;
                 //break;

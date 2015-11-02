@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2009-2014 Freedomotic team http://freedomotic.com
+ * Copyright (c) 2009-2015 Freedomotic team http://freedomotic.com
  * 
 * This file is part of Freedomotic
  * 
@@ -23,7 +23,6 @@ import com.freedomotic.exceptions.UnableToExecuteException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.myhome.fcrisciani.exception.MalformedCommandOPEN;
 
 /**
  *
@@ -135,7 +134,7 @@ public class OWNFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void SendFrameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendFrameButtonActionPerformed
-        pluginReference.handler.inviaComandoOpen((String) jTextOwnFrame.getText());
+        pluginReference.ownHandler.inviaComandoOpen((String) jTextOwnFrame.getText());
 
     }//GEN-LAST:event_SendFrameButtonActionPerformed
 
