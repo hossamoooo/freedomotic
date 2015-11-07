@@ -1,0 +1,10 @@
+<config>
+    <properties>
+        <property name="name" value="ipcamera"/>
+        <property name="description" value="An ipcamera"/>
+        <property name="category" value="category"/>
+        <property name="short-name" value="ipcamera"/>
+    </properties>
+</config>
+
+                
