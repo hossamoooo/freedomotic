@@ -20,7 +20,7 @@
                <logical>SET</logical>
                <attribute>behaviorValue</attribute>
                <operand>EQUALS</operand>
-               <value>@event.openwebnet.temperature</value>
+               <value>@event.openwebnet.setpoint</value>
             </statement>
         </payload>
     </payload>

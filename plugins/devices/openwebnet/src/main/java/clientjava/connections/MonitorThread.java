@@ -79,7 +79,7 @@ public class MonitorThread extends Thread {
                             num = 0;
                             indice = 0;
                             c = ' ';
-                            pluginRef.getLogger().log(Level.CONFIG, "Mon: ----- Socket chiusa dal server -----");
+                            //pluginRef.getLogger().log(Level.CONFIG, "Mon: ----- Socket chiusa dal server -----");FOR DEBUG
                             socketMon = null;
                             GestoreSocketMonitor.statoMonitor = 0;
                             break;
@@ -128,6 +128,6 @@ public class MonitorThread extends Thread {
             risposta = null;
         } while (GestoreSocketMonitor.statoMonitor == 3);
 
-        pluginRef.getLogger().log(Level.INFO, "Thread Monitorizza terminato");
+        //pluginRef.getLogger().log(Level.INFO, "Thread Monitorizza terminato"); FOR DEBUG
     }
 }

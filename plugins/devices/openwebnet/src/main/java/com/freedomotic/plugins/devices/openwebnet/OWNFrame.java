@@ -135,7 +135,7 @@ public class OWNFrame extends javax.swing.JFrame {
 
     private void SendFrameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendFrameButtonActionPerformed
         pluginReference.ownHandler.inviaComandoOpen((String) jTextOwnFrame.getText());
-
+        
     }//GEN-LAST:event_SendFrameButtonActionPerformed
 
     private void jTextOwnFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextOwnFrameActionPerformed

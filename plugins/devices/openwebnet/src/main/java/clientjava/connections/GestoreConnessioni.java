@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package clientjava.connections;
 
 import com.freedomotic.plugins.devices.openwebnet.OpenWebNet;
@@ -36,8 +32,6 @@ public class GestoreConnessioni implements GestoreConnessioniInterface {
      * costruttore privato (singleton)
      */
     private GestoreConnessioni() {
-        //gestSocketComandi = new GestoreSocketComandi();
-        //gestSocketMonitor = new GestoreSocketMonitor(pluginRef);
     }
 
     /**

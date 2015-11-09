@@ -75,19 +75,22 @@ public class OpenWebNet extends Protocol {
         pluginGui = new OWNFrame(this);
         ownHandler.init(host, port, this);
         ownHandler.startMonitoring();
+        //System.out.println("PROVA FRAME ");
+        //this.buildEventFromFrame("*#4*1*12*0205*3##");
+        // this.buildEventFromFrame("*#4*1*0*0205*3##");
     }
 
     @Override
     protected void onRun() {
         // syncronize the software with the system status
         initSystem();
+
     }
 
     @Override
     public void onCommand(Command c) throws IOException, UnableToExecuteException {
         String frameToSend = OWNUtilities.createFrame(c);
         LOG.log(Level.INFO, "Trying to send frame ''{0}'' to OWN gateway", frameToSend);
-        //ownMT.sendCommand(frameToSend, 1);
         ownHandler.inviaComandoOpen(frameToSend);
     }
 
@@ -107,7 +110,6 @@ public class OpenWebNet extends Protocol {
 
     @Override
     public void onStop() {
-        //ownMT.stopMonitoring();
         ownHandler.stopMonitoring();
         this.setDescription("Plugin stopped");
     }
@@ -129,6 +131,7 @@ public class OpenWebNet extends Protocol {
     }
 
     public void buildEventFromFrame(String frame) {
+
         String who = null;
         String what = null;
         String where = null;
@@ -138,11 +141,9 @@ public class OpenWebNet extends Protocol {
         String messageType = null;
         String messageDescription = null;
         String[] frameParts = null;
-        //ProtocolRead event = null;
 
-        int length = frame.length();
         if (frame.isEmpty() || !frame.endsWith("##")) {
-            OpenWebNet.LOG.severe("Malformed frame " + frame + " " + frame.substring(length - 2, length));
+            OpenWebNet.LOG.severe("Malformed frame " + frame);
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Mon: Malformed frame " + frame);
             return;
         }
@@ -159,7 +160,9 @@ public class OpenWebNet extends Protocol {
         }
 
 
-        if (frame.substring(0, 2).equalsIgnoreCase("*#")) { // remove *# and ## 
+        if (frame.substring(0, 2).equalsIgnoreCase("*#")) {
+            // remove *# and ## 
+            frame = frame.substring(2, frame.length() - 2);
             frameParts = frame.split("\\*"); // * is reserved so it must be escaped 
             who = frameParts[0];
             where = frameParts[1];
@@ -255,30 +258,32 @@ public class OpenWebNet extends Protocol {
             if (who.equalsIgnoreCase("4")) {
                 String temperature = null;
                 String setpoint = null;
-                // temperature read value
-                if (dimension.equalsIgnoreCase("0")) {
-                    objectClass = "Thermostat";
-                    temperature = frameParts[3].substring(1, 3);
-                    messageDescription = "Temperature read value";
-                    if (temperature != null) {
+
+                switch (Integer.parseInt(dimension)) {
+
+                    // temperature read value
+                    case 0:
+                        objectClass = "Thermostat";
+                        temperature = frameParts[3].substring(1, frameParts[3].length());
+                        messageDescription = "Temperature read value";
                         event.getPayload().addStatement("openwebnet.temperature", temperature);
                         event.getPayload().addStatement("openwebnet.dimension", dimension);
                         event.getPayload().addStatement("object.class", objectClass);
-                    }
-                }
+                        break;
 
-                // setpoint read value
-                if (dimension.equalsIgnoreCase("12")) {
-                    objectClass = "Thermostat";
-                    setpoint = frameParts[3].substring(1, 3);
-                    messageDescription = "Setpoint read value";
-                    if (temperature != null) {
+                    // setpoint read value
+                    case 12:
+                        objectClass = "Thermostat";
+                        setpoint = frameParts[3].substring(1, frameParts[3].length());
+                        messageDescription = "Setpoint read value";
                         event.getPayload().addStatement("openwebnet.setpoint", setpoint);
                         event.getPayload().addStatement("openwebnet.dimension", dimension);
                         event.getPayload().addStatement("object.class", objectClass);
-                    }
+                        break;
                 }
-            }
+
+            } // close TERMOREGULATION
+
             // GATEWAY CONTROL
             if (who.equalsIgnoreCase("13")) {
                 String hour = null;
@@ -436,20 +441,21 @@ public class OpenWebNet extends Protocol {
             LOG.log(Level.INFO, "Frame received from OWN gateway: " + frame);
             // notify event
             notifyEvent(event);
-        }
+            LOG.log(Level.INFO, "EVENTO NOTIFICATO: " + event.getPayload().getStatements());
 
+            return;
+        }
 
         if (!(frame.substring(0, 2).equalsIgnoreCase("*#"))) {
             // remove delimiter chars * and ##
-            frame = frame.substring(1, length - 2);
+            frame = frame.substring(1, frame.length() - 2);
             frameParts = frame.split("\\*"); // * is reserved so it must be escaped
             who = frameParts[0];
             what = frameParts[1];
             where = frameParts[2];
             event = new ProtocolRead(this, "openwebnet", who + "*" + where);
             objectName = who + "*" + where;
-
-
+           
             switch (Integer.parseInt(who)) {
                 //LIGHTING
                 case 1:
@@ -699,8 +705,10 @@ public class OpenWebNet extends Protocol {
             }
             OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Rx: " + frame + " " + "(" + messageDescription + ")");
             LOG.log(Level.INFO, "Frame received from OWN gateway: " + frame);
+            // notify event
             notifyEvent(event);
+            LOG.log(Level.INFO, "EVENTO NOTIFICATO: " + event.getPayload().getStatements());
         }
-        //return;
+        return;
     }
 }

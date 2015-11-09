@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package clientjava.connections;
 
 import com.freedomotic.plugins.devices.openwebnet.OpenWebNet;
@@ -60,12 +57,12 @@ public class TimerThread extends Thread {
             try {
                 Thread.sleep(time);
             } catch (InterruptedException e) {
-                pluginRef.getLogger().log(Level.INFO, "Thread timeout interrotto!");
+                //pluginRef.getLogger().log(Level.INFO, "Thread timeout interrotto!");
                 break;
                 //e.printStackTrace();
             }
 
-            pluginRef.getLogger().log(Level.INFO, "Thread timeout SCADUTO!");
+            //pluginRef.getLogger().log(Level.INFO, "Thread timeout SCADUTO!");
             //chiudo il thread per la ricezione dei caratteri
             if (tipoSocket == 0) {
                 if (GestoreSocketComandi.readTh != null) {
