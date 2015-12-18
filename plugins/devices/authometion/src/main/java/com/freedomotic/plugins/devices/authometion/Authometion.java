@@ -85,15 +85,23 @@ public class Authometion extends Protocol {
     protected void onCommand(Command c) throws UnableToExecuteException {
         //this method receives freedomotic commands sent on channel app.actuators.protocol.authometion.in
         String message = c.getProperty("authometion.command");
-        
-               
+
+
         message += delimiter + c.getProperty("address");
-        
-        switch(c.getProperty("authometion.command")) {
-            
+
+        switch (c.getProperty("authometion.command")) {
+            case "SBR":
+                Integer brightness = Integer.valueOf(c.getProperty("brightness"));
+                //System.out.println("brightness "+brightness);     
+                if (brightness > 0) {
+                    message += delimiter + (int) Math.ceil((brightness * 255)/100);
+            }
+
+            break;
         }
-        
+
         message += "\r";
+        //System.out.println("AUTHOMETION "+message);  
         
         try {
             serial.write(message);
