@@ -27,6 +27,7 @@ import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.helpers.SerialHelper;
 import com.freedomotic.helpers.SerialPortListener;
 import com.freedomotic.reactions.Command;
+import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jssc.SerialPortException;
@@ -91,18 +92,20 @@ public class Authometion extends Protocol {
 
         switch (c.getProperty("authometion.command")) {
             case "SBR":
-                Integer brightness = Integer.valueOf(c.getProperty("brightness"));
-                //System.out.println("brightness "+brightness);     
-                if (brightness > 0) {
-                    message += delimiter + (int) Math.ceil((brightness * 255)/100);
-            }
+                int brightness = Integer.valueOf(c.getProperty("brightness"));
+                message += delimiter + (int) Math.ceil((brightness * 255) / 100);
+                break;
 
-            break;
+            case "RGB":
+                String[] rgbValues = hsbToRgb(Float.valueOf(c.getProperty("hue")), Float.valueOf(c.getProperty("saturation")), Float.valueOf(c.getProperty("brightness")));
+                //message += delimiter + (int) Math.ceil((brightness * 255)/100);
+                message += delimiter + rgbValues[0] + delimiter + rgbValues[1] + delimiter + rgbValues[2];
+                break;
         }
 
         message += "\r";
         //System.out.println("AUTHOMETION "+message);  
-        
+
         try {
             serial.write(message);
         } catch (SerialPortException ex) {
@@ -124,6 +127,24 @@ public class Authometion extends Protocol {
             event.addProperty("isOn", "false");
         }
         this.notifyEvent(event);
+    }
+
+    private String[] hsbToRgb(float hue, float saturation, float brightness) {
+
+        String[] rgbValues;
+
+        int rgb = Color.HSBtoRGB(hue, saturation, brightness);
+        int red = (rgb >> 16) & 0xFF;
+        int green = (rgb >> 8) & 0xFF;
+        int blue = rgb & 0xFF;
+
+        rgbValues = new String[3];
+        rgbValues[0] = String.valueOf(red);
+        rgbValues[1] = String.valueOf(green);
+        rgbValues[2] = String.valueOf(blue);
+
+        return rgbValues;
+
     }
 
     @Override
