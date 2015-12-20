@@ -1,0 +1,17 @@
+<command>
+    <name>Authometion: Set RGB light saturation</name>
+    <receiver>app.actuators.protocol.authometion.in</receiver>
+    <description>set the saturations of an Authometion LYT/RGB light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="HSB"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="brightness" value="@owner.object.behavior.brightness"/>
+            <property name="hue" value="@owner.object.behavior.hue"/>
+            <property name="saturation" value="@value"/>
+        </properties>
+    </properties>
+</command>

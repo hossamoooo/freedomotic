@@ -41,10 +41,9 @@ public class Authometion extends Protocol {
     private Integer parity = configuration.getIntProperty("serial.parity", 0);
     private Integer stopBits = configuration.getIntProperty("serial.stopbits", 1);
     private String chunkTerminator = configuration.getStringProperty("chunk.terminator", "\n");
-    //ALTERNITIVE TO CHUNK TERMINATOR: 
-    //private Integer chunkSize = configuration.getIntProperty("chunk.size", 5);
     private String delimiter = configuration.getStringProperty("delimiter", ";");
     private SerialHelper serial;
+    private AuthometionGui gui;
 
     public Authometion() {
         super("Authometion", "/authometion/authometion-manifest.xml");
@@ -54,9 +53,9 @@ public class Authometion extends Protocol {
 
     @Override
     public void onStart() throws PluginStartupException {
+        gui = new AuthometionGui(this);
         try {
             serial = new SerialHelper(portName, baudRate, dataBits, stopBits, parity, new SerialPortListener() {
-
                 @Override
                 public void onDataAvailable(String data) {
                     LOG.log(Level.CONFIG, "Authometion received: {0}", data);
@@ -85,32 +84,28 @@ public class Authometion extends Protocol {
     @Override
     protected void onCommand(Command c) throws UnableToExecuteException {
         //this method receives freedomotic commands sent on channel app.actuators.protocol.authometion.in
-        String message = c.getProperty("authometion.command");
-
-
-        message += delimiter + c.getProperty("address");
+        String message = "";
 
         switch (c.getProperty("authometion.command")) {
             case "SBR":
+                message = c.getProperty("authometion.command");
+                message += delimiter + c.getProperty("address");
                 int brightness = Integer.valueOf(c.getProperty("brightness"));
                 message += delimiter + (int) Math.ceil((brightness * 255) / 100);
                 break;
 
-            case "RGB":
-                String[] rgbValues = hsbToRgb(Float.valueOf(c.getProperty("hue")), Float.valueOf(c.getProperty("saturation")), Float.valueOf(c.getProperty("brightness")));
-                //message += delimiter + (int) Math.ceil((brightness * 255)/100);
+            case "HSB":
+                message = c.getProperty("authometion.command");
+                message += delimiter + c.getProperty("address");
+                String[] rgbValues = hsbToRgb(Float.valueOf(c.getProperty("hue")), Float.valueOf(c.getProperty("saturation")) / 100, Float.valueOf(c.getProperty("brightness")) / 100);
                 message += delimiter + rgbValues[0] + delimiter + rgbValues[1] + delimiter + rgbValues[2];
                 break;
         }
 
         message += "\r";
         //System.out.println("AUTHOMETION "+message);  
+        writeToSerial(message);
 
-        try {
-            serial.write(message);
-        } catch (SerialPortException ex) {
-            throw new UnableToExecuteException("Error writing message '" + message + "' to arduino serial board: " + ex.getMessage(), ex);
-        }
     }
 
     private void sendChanges(String data) {
@@ -144,7 +139,14 @@ public class Authometion extends Protocol {
         rgbValues[2] = String.valueOf(blue);
 
         return rgbValues;
+    }
 
+    public void writeToSerial(String message) throws UnableToExecuteException {
+        try {
+            serial.write(message);
+        } catch (SerialPortException ex) {
+            throw new UnableToExecuteException("Error writing message '" + message + "' to arduino serial board: " + ex.getMessage(), ex);
+        }
     }
 
     @Override
