@@ -1,0 +1,15 @@
+<command>
+    <name>Authometion: Set light brightness</name>
+    <receiver>app.actuators.protocol.authometion.in</receiver>
+    <description>set the brightness of an Authometion LYT/RGB light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="SBR"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="brightness" value="@value"/>
+        </properties>
+    </properties>
+</command>
