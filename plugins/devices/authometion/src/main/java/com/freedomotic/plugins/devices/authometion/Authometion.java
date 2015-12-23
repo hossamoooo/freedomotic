@@ -47,7 +47,6 @@ public class Authometion extends Protocol {
 
     public Authometion() {
         super("Authometion", "/authometion/authometion-manifest.xml");
-        //This disables loop execution od onRun() method
         setPollingWait(-1); // onRun() executes once.
     }
 
@@ -59,7 +58,7 @@ public class Authometion extends Protocol {
                 @Override
                 public void onDataAvailable(String data) {
                     LOG.log(Level.CONFIG, "Authometion received: {0}", data);
-                    //sendChanges(data);
+                    sendChanges(data);
                 }
             });
             // in this example it reads until a string terminator (default: new line char)
@@ -99,63 +98,36 @@ public class Authometion extends Protocol {
                 message += delimiter + (int) Math.ceil((brightness * 255) / 100);
                 break;
 
-            case "HSB":
+            case "RGB":
                 message = c.getProperty("authometion.command");
                 message += delimiter + c.getProperty("address");
-                String[] rgbValues = hsbToRgb(Float.valueOf(c.getProperty("hue")), Float.valueOf(c.getProperty("saturation")) / 100, Float.valueOf(c.getProperty("brightness")) / 100);
-                message += delimiter + rgbValues[0] + delimiter + rgbValues[1] + delimiter + rgbValues[2];
+                message += delimiter + c.getProperty("red") + delimiter + c.getProperty("green") + delimiter + c.getProperty("blue");
+                break;
+
+            default:
+                message = c.getProperty("authometion.command");
+                message += delimiter + c.getProperty("address");
                 break;
         }
 
-        //System.out.println("AUTHOMETION "+message);  
         writeToSerial(message);
-
+         // if save configuration enabled execute SAV,<object-address>
+        // writeToSerial("SAV,"+ c.getProperty("address"); 
     }
 
     private void sendChanges(String data) {
-        // in this example we are using Arduino Serial.println() so
-        // remove '\r' and '\n' at the end of the string and split data read
-        String[] receivedMessage = data.substring(0, data.length() - 2).split(delimiter);
-        String receivedAddress = receivedMessage[0];
-        String receivedStatus = receivedMessage[1];
 
-        ProtocolRead event = new ProtocolRead(this, "authometion", receivedAddress);
-        if (receivedStatus.equalsIgnoreCase("on")) {
-            event.addProperty("isOn", "true");
-        } else {
-            event.addProperty("isOn", "false");
+        if (data.startsWith("Answers:")) {
+            System.out.println("Status received");
         }
-        this.notifyEvent(event);
-    }
 
-    private String[] hsbToRgb(float hue, float saturation, float brightness) {
-
-        String[] rgbValues;
-
-        int rgb = Color.HSBtoRGB(hue, saturation, brightness);
-        int red = (rgb >> 16) & 0xFF;
-        int green = (rgb >> 8) & 0xFF;
-        int blue = rgb & 0xFF;
-
-        rgbValues = new String[3];
-        rgbValues[0] = String.valueOf(red);
-        rgbValues[1] = String.valueOf(green);
-        rgbValues[2] = String.valueOf(blue);
-
-        return rgbValues;
-    }
-    
-
-    private String[] rgbToHsb(int red, int green, int blue) {
-
-        String[] hsb = new String[3];
-
-        float[] hsbValues = Color.RGBtoHSB(red, green, blue, null);
-        hsb[0] = String.valueOf(hsbValues[0]);
-        hsb[1] = String.valueOf(hsbValues[1]);
-        hsb[2] = String.valueOf(hsbValues[2]);
-        return hsb;
-
+        //ProtocolRead event = new ProtocolRead(this, "authometion", receivedAddress);
+        //if (receivedStatus.equalsIgnoreCase("on")) {
+        //    event.addProperty("isOn", "true");
+        //} else {
+        //    event.addProperty("isOn", "false");
+        //}
+        //this.notifyEvent(event);
     }
 
     public void writeToSerial(String message) throws UnableToExecuteException {

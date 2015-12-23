@@ -1,0 +1,17 @@
+<command>
+    <name>Authometion: Set RGB blue value</name>
+    <receiver>app.actuators.protocol.authometion.in</receiver>
+    <description>set the blue value of an Authometion LYT/RGB light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="RGB"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="red" value="@owner.object.behavior.red"/>
+            <property name="green" value="@owner.object.behavior.green"/>
+            <property name="blue" value="@value"/>
+        </properties>
+    </properties>
+</command>
