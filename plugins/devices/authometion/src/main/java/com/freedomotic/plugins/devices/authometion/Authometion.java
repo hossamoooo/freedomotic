@@ -70,6 +70,11 @@ public class Authometion extends Protocol {
     }
 
     @Override
+    protected void onShowGui() {
+        bindGuiToPlugin(gui);
+    }
+
+    @Override
     public void onStop() {
         if (serial != null) {
             serial.disconnect();
@@ -102,7 +107,6 @@ public class Authometion extends Protocol {
                 break;
         }
 
-        message += "\r";
         //System.out.println("AUTHOMETION "+message);  
         writeToSerial(message);
 
@@ -140,10 +144,23 @@ public class Authometion extends Protocol {
 
         return rgbValues;
     }
+    
+
+    private String[] rgbToHsb(int red, int green, int blue) {
+
+        String[] hsb = new String[3];
+
+        float[] hsbValues = Color.RGBtoHSB(red, green, blue, null);
+        hsb[0] = String.valueOf(hsbValues[0]);
+        hsb[1] = String.valueOf(hsbValues[1]);
+        hsb[2] = String.valueOf(hsbValues[2]);
+        return hsb;
+
+    }
 
     public void writeToSerial(String message) throws UnableToExecuteException {
         try {
-            serial.write(message);
+            serial.write(message + "\r");
         } catch (SerialPortException ex) {
             throw new UnableToExecuteException("Error writing message '" + message + "' to arduino serial board: " + ex.getMessage(), ex);
         }

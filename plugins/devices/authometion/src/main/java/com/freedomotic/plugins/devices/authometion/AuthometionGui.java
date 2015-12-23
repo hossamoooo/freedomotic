@@ -35,6 +35,7 @@ public class AuthometionGui extends javax.swing.JFrame {
 
         sendCommandText = new javax.swing.JTextField();
         sendCommandButton = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -51,13 +52,17 @@ public class AuthometionGui extends javax.swing.JFrame {
             }
         });
 
+        jLabel1.setText("Command to send");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(sendCommandText, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(sendCommandText, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE))
                 .addGap(28, 28, 28)
                 .addComponent(sendCommandButton)
                 .addContainerGap(113, Short.MAX_VALUE))
@@ -65,7 +70,9 @@ public class AuthometionGui extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(43, 43, 43)
+                .addGap(20, 20, 20)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(sendCommandText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(sendCommandButton))
@@ -81,13 +88,14 @@ public class AuthometionGui extends javax.swing.JFrame {
 
     private void sendCommandButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendCommandButtonActionPerformed
         try {
-            atm.writeToSerial(sendCommandButton.getText());
+            atm.writeToSerial(sendCommandText.getText());
         } catch (UnableToExecuteException ex) {
             Logger.getLogger(AuthometionGui.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_sendCommandButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JButton sendCommandButton;
     private javax.swing.JTextField sendCommandText;
     // End of variables declaration//GEN-END:variables
