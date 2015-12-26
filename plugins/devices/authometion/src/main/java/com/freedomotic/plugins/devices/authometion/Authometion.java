@@ -111,23 +111,28 @@ public class Authometion extends Protocol {
         }
 
         writeToSerial(message);
-         // if save configuration enabled execute SAV,<object-address>
+        // if save configuration enabled execute SAV,<object-address>
         // writeToSerial("SAV,"+ c.getProperty("address"); 
     }
 
     private void sendChanges(String data) {
 
-        if (data.startsWith("Answers:")) {
-            System.out.println("Status received");
+        if (data.startsWith("STATUS:")) {
+            String[] payload = data.substring(7, data.length() - 1).split(" ");
+            ProtocolRead event = new ProtocolRead(this, "authometion", null);
+            if (payload[0].equalsIgnoreCase("1")) {
+                event.addProperty("isOn", "true");
+            } else {
+                event.addProperty("isOn", "false");
+            }
+            event.addProperty("rgb.red", payload[1]);
+            event.addProperty("rgb.green", payload[2]);
+            event.addProperty("rgb.blue", payload[3]);
+            event.addProperty("brightness", String.valueOf(Math.round(Integer.parseInt(payload[4])*100)/255));
+            event.addProperty("rssi", payload[5]);
+            System.out.println(event.getPayload().getStatements());
+            this.notifyEvent(event);
         }
-
-        //ProtocolRead event = new ProtocolRead(this, "authometion", receivedAddress);
-        //if (receivedStatus.equalsIgnoreCase("on")) {
-        //    event.addProperty("isOn", "true");
-        //} else {
-        //    event.addProperty("isOn", "false");
-        //}
-        //this.notifyEvent(event);
     }
 
     public void writeToSerial(String message) throws UnableToExecuteException {
