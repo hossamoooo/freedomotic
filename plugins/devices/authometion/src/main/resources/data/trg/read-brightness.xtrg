@@ -1,6 +1,6 @@
 <trigger>
-    <name>Authometion: reads powered value</name>
-    <description>Authometion reads powered value</description>
+    <name>Authometion: reads brightness value</name>
+    <description>Authometion reads brightness value</description>
     <channel>app.event.sensor.protocol.read.authometion</channel>
     <payload>
         <payload>
@@ -8,7 +8,7 @@
                 <logical>SET</logical>
                 <attribute>behaviorValue</attribute>
                 <operand>EQUALS</operand>
-                <value>@event.isOn</value>
+                <value>@event.brightness</value>
             </statement>
         </payload>
     </payload>

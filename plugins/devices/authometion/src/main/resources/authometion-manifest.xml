@@ -6,6 +6,7 @@
         <property name="category" value="protocol"/>
         <property name="short-name" value="authometion"/>
         <property name="protocol.name" value="authometion"/>
+    <!-- SERIAL COMMUNICATION PARAMETERS --> 
         <property name="serial.port" value="COM6"/>       
         <property name="serial.baudrate" value="9600"/>
         <property name="serial.databits" value="8"/>
@@ -14,6 +15,7 @@
         <property name="chunk.terminator" value="&#xA;"/>
         <property name="chunk.size" value="5"/>
         <property name="delimiter" value=","/>
+        <property name="save-lights-configuration" value="false"/>
     </properties>
 </config>
 

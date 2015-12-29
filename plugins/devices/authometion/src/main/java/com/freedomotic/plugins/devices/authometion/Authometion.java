@@ -42,6 +42,7 @@ public class Authometion extends Protocol {
     private Integer stopBits = configuration.getIntProperty("serial.stopbits", 1);
     private String chunkTerminator = configuration.getStringProperty("chunk.terminator", "\n");
     private String delimiter = configuration.getStringProperty("delimiter", ";");
+    private String save_lights_configuration = configuration.getStringProperty("save-lights-configuration", "false");
     private SerialHelper serial;
     private AuthometionGui gui;
 
@@ -112,25 +113,26 @@ public class Authometion extends Protocol {
 
         writeToSerial(message);
         // if save configuration enabled execute SAV,<object-address>
-        // writeToSerial("SAV,"+ c.getProperty("address"); 
+        if (save_lights_configuration.equalsIgnoreCase("true")) {
+            writeToSerial("SAV," + c.getProperty("address"));
+        }
     }
 
     private void sendChanges(String data) {
 
         if (data.startsWith("STATUS:")) {
             String[] payload = data.substring(7, data.length() - 1).split(" ");
-            ProtocolRead event = new ProtocolRead(this, "authometion", null);
-            if (payload[0].equalsIgnoreCase("1")) {
+            ProtocolRead event = new ProtocolRead(this, "authometion", payload[0]);
+            if (payload[1].equalsIgnoreCase("1")) {
                 event.addProperty("isOn", "true");
             } else {
                 event.addProperty("isOn", "false");
             }
-            event.addProperty("rgb.red", payload[1]);
-            event.addProperty("rgb.green", payload[2]);
-            event.addProperty("rgb.blue", payload[3]);
-            event.addProperty("brightness", String.valueOf(Math.round(Integer.parseInt(payload[4])*100)/255));
-            event.addProperty("rssi", payload[5]);
-            System.out.println(event.getPayload().getStatements());
+            event.addProperty("rgb.red", payload[2]);
+            event.addProperty("rgb.green", payload[3]);
+            event.addProperty("rgb.blue", payload[4]);
+            event.addProperty("brightness", String.valueOf(Math.round(Integer.parseInt(payload[5]) * 100) / 255));
+            event.addProperty("rssi", payload[6]);
             this.notifyEvent(event);
         }
     }
