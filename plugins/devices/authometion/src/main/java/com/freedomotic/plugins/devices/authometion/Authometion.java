@@ -93,16 +93,21 @@ public class Authometion extends Protocol {
 
         switch (c.getProperty("authometion.command")) {
             case "SBR":
-                message = c.getProperty("authometion.command");
-                message += delimiter + c.getProperty("address");
-                int brightness = Integer.valueOf(c.getProperty("brightness"));
-                message += delimiter + (int) Math.ceil((brightness * 255) / 100);
+                if (!c.getProperty("brightness").equalsIgnoreCase("0")) {
+                    message = c.getProperty("authometion.command");
+                    message += delimiter + c.getProperty("address");
+                    //int brightness = Integer.valueOf(c.getProperty("brightness"));
+                    //message += delimiter + (int) Math.ceil((brightness * 255) / 100);
+                    message += delimiter + c.getProperty("brightness");
+                }
                 break;
 
             case "RGB":
-                message = c.getProperty("authometion.command");
-                message += delimiter + c.getProperty("address");
-                message += delimiter + c.getProperty("red") + delimiter + c.getProperty("green") + delimiter + c.getProperty("blue");
+                if (!(c.getProperty("red").equalsIgnoreCase("0") && c.getProperty("green").equalsIgnoreCase("0") && c.getProperty("blue").equalsIgnoreCase("0"))) {
+                    message = c.getProperty("authometion.command");
+                    message += delimiter + c.getProperty("address");
+                    message += delimiter + c.getProperty("red") + delimiter + c.getProperty("green") + delimiter + c.getProperty("blue");
+                }
                 break;
 
             default:
@@ -111,7 +116,10 @@ public class Authometion extends Protocol {
                 break;
         }
 
-        writeToSerial(message);
+        if (!message.equalsIgnoreCase("")) {
+            writeToSerial(message);
+        }
+
         // if save configuration enabled execute SAV,<object-address>
         if (save_lights_configuration.equalsIgnoreCase("true")) {
             writeToSerial("SAV," + c.getProperty("address"));
@@ -131,8 +139,9 @@ public class Authometion extends Protocol {
             event.addProperty("rgb.red", payload[2]);
             event.addProperty("rgb.green", payload[3]);
             event.addProperty("rgb.blue", payload[4]);
-            event.addProperty("brightness", String.valueOf(Math.round(Integer.parseInt(payload[5]) * 100) / 255));
+            event.addProperty("brightness", payload[5]);
             event.addProperty("rssi", payload[6]);
+            System.out.println(event.getPayload().getStatements());
             this.notifyEvent(event);
         }
     }

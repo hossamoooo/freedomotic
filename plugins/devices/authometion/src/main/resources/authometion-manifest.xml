@@ -7,7 +7,7 @@
         <property name="short-name" value="authometion"/>
         <property name="protocol.name" value="authometion"/>
     <!-- SERIAL COMMUNICATION PARAMETERS --> 
-        <property name="serial.port" value="COM6"/>       
+        <property name="serial.port" value="/dev/ttyACM0"/>       
         <property name="serial.baudrate" value="9600"/>
         <property name="serial.databits" value="8"/>
         <property name="serial.parity" value="0"/>
