@@ -93,12 +93,12 @@ public class Authometion extends Protocol {
 
         switch (c.getProperty("authometion.command")) {
             case "SBR":
-                if (!c.getProperty("brightness").equalsIgnoreCase("0")) {
+                if (!c.getProperty("white").equalsIgnoreCase("0")) {
                     message = c.getProperty("authometion.command");
                     message += delimiter + c.getProperty("address");
                     //int brightness = Integer.valueOf(c.getProperty("brightness"));
                     //message += delimiter + (int) Math.ceil((brightness * 255) / 100);
-                    message += delimiter + c.getProperty("brightness");
+                    message += delimiter + c.getProperty("white");
                 }
                 break;
 
@@ -139,10 +139,9 @@ public class Authometion extends Protocol {
             event.addProperty("rgb.red", payload[2]);
             event.addProperty("rgb.green", payload[3]);
             event.addProperty("rgb.blue", payload[4]);
-            event.addProperty("brightness", payload[5]);
+            event.addProperty("white", payload[5]);
             event.addProperty("rssi", payload[6]);
-            System.out.println(event.getPayload().getStatements());
-            this.notifyEvent(event);
+            notifyEvent(event);
         }
     }
 
