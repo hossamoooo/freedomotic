@@ -1,0 +1,132 @@
+<object>
+  <name>Authometion RGBW Light</name>
+  <description>An Authometion Rgbw Light</description>
+  <actAs></actAs>
+  <type>EnvObject.ElectricDevice.RGBLight.RGBWLight</type>
+  <hierarchy>com.freedomotic.things.impl.RGBWLight</hierarchy>
+  <protocol>authometion</protocol>
+  <phisicalAddress>unknown</phisicalAddress>
+  <behaviors>
+    <com.freedomotic.model.object.BooleanBehavior>
+      <name>powered</name>
+      <description></description>
+      <active>true</active>
+      <priority>-1</priority>
+      <value>false</value>
+    </com.freedomotic.model.object.BooleanBehavior>
+    <com.freedomotic.model.object.RangedIntBehavior>
+      <name>red</name>
+      <description>red value</description>
+      <active>true</active>
+      <priority>-1</priority>
+      <value>0</value>
+      <max>255</max>
+      <min>0</min>
+      <step>1</step>
+    </com.freedomotic.model.object.RangedIntBehavior>
+    <com.freedomotic.model.object.RangedIntBehavior>
+      <name>green</name>
+      <description>green value</description>
+      <active>true</active>
+      <priority>-1</priority>
+      <value>0</value>
+      <max>255</max>
+      <min>0</min>
+      <step>1</step>
+    </com.freedomotic.model.object.RangedIntBehavior>
+    <com.freedomotic.model.object.RangedIntBehavior>
+      <name>blue</name>
+      <description>blue value</description>
+      <active>true</active>
+      <priority>-1</priority>
+      <value>0</value>
+      <max>255</max>
+      <min>0</min>
+      <step>1</step>
+    </com.freedomotic.model.object.RangedIntBehavior>
+    <com.freedomotic.model.object.RangedIntBehavior>
+      <name>white</name>
+      <description>white value</description>
+      <active>true</active>
+      <priority>-1</priority>
+      <value>0</value>
+      <max>255</max>
+      <min>0</min>
+      <step>1</step>
+    </com.freedomotic.model.object.RangedIntBehavior>
+    <com.freedomotic.model.object.RangedIntBehavior>
+      <name>brightness</name>
+      <description>brightness value</description>
+      <active>true</active>
+      <priority>-1</priority>
+      <value>0</value>
+      <max>100</max>
+      <min>0</min>
+      <step>10</step>
+    </com.freedomotic.model.object.RangedIntBehavior>
+    <com.freedomotic.model.object.RangedIntBehavior>
+      <name>power_consumption</name>
+      <description>Power consumed by device when it's on</description>
+      <active>true</active>
+      <priority>-1</priority>
+      <readOnly>true</readOnly>
+      <value>0</value>
+      <max>3000</max>
+      <min>0</min>
+      <scale>1</scale>
+      <step>10</step>
+    </com.freedomotic.model.object.RangedIntBehavior>
+  </behaviors>
+  <representation>
+    <view>
+      <tangible>true</tangible>
+      <intersecable>false</intersecable>
+      <offset x="0" y="0"/>
+      <rotation>0.0</rotation>
+      <icon>rgbw-light-off.png</icon>
+      <fillColor>#000000</fillColor>
+      <textColor>#000000</textColor>
+      <borderColor>#000000</borderColor>
+      <shape class="polygon">
+        <point x="0" y="0"/>
+        <point x="64" y="0"/>
+        <point x="64" y="64"/>
+        <point x="0" y="64"/>
+      </shape>
+    </view>
+    <view>
+      <tangible>true</tangible>
+      <intersecable>false</intersecable>
+      <offset x="0" y="0"/>
+      <rotation>0.0</rotation>
+      <icon>rgbw-light-on.png</icon>
+      <fillColor>#000000</fillColor>
+      <textColor>#000000</textColor>
+      <borderColor>#000000</borderColor>
+      <shape class="polygon">
+        <point x="0" y="0"/>
+        <point x="64" y="0"/>
+        <point x="64" y="64"/>
+        <point x="0" y="64"/>
+      </shape>
+    </view>
+  </representation>
+  <actions>
+    <property name="turn off" value="Authometion: Turn light OFF"/>
+    <property name="set blue" value="Authometion: Set RGB blue value"/>
+    <property name="set brightness" value="Execute it successfully"/>
+    <property name="set red" value="Authometion: Set RGB red value"/>
+    <property name="turn on" value="Authometion: Turn light ON"/>
+    <property name="set green" value="Authometion: Set RGB green value"/>
+    <property name="set white" value="Authometion: Set light white value"/>
+  </actions>
+  <triggers>
+    <property name="Authometion: reads white value" value="white"/>
+    <property name="" value="brightness"/>
+    <property name="Authometion: reads RGB blue value" value="blue"/>
+    <property name="Authometion: reads powered value" value="powered"/>
+    <property name="Authometion: reads RGB green value" value="green"/>
+    <property name="Authometion: reads RGB red value" value="red"/>
+  </triggers>
+  <currentRepresentation>0</currentRepresentation>
+</object>

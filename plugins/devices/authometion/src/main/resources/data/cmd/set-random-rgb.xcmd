@@ -1,0 +1,14 @@
+<command>
+    <name>Authometion: Set random RGB values for 0,0 light</name>
+    <receiver>app.actuators.protocol.authometion.in</receiver>
+    <description>set random RGB values of an Authometion LYT/RGBW light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="RND"/>
+            <property name="address" value="0,0"/>
+        </properties>
+    </properties>
+</command>

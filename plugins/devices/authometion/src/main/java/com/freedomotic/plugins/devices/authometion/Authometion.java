@@ -27,7 +27,9 @@ import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.helpers.SerialHelper;
 import com.freedomotic.helpers.SerialPortListener;
 import com.freedomotic.reactions.Command;
+import com.freedomotic.things.EnvObjectLogic;
 import java.awt.Color;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jssc.SerialPortException;
@@ -83,30 +85,46 @@ public class Authometion extends Protocol {
 
     @Override
     protected void onRun() {
-        //nothing to do, Arduino messages are read by SerialHelper
+        try {
+            initializeThings();
+        } catch (UnableToExecuteException ex) {
+            LOG.log(Level.CONFIG, ex.getLocalizedMessage());
+        }
     }
 
     @Override
     protected void onCommand(Command c) throws UnableToExecuteException {
         //this method receives freedomotic commands sent on channel app.actuators.protocol.authometion.in
         String message = "";
+        Random random = new Random();
+        final int maxRGB = 255;
+        int red, green, blue;
 
         switch (c.getProperty("authometion.command")) {
             case "SBR":
                 if (!c.getProperty("white").equalsIgnoreCase("0")) {
                     message = c.getProperty("authometion.command");
                     message += delimiter + c.getProperty("address");
-                    //int brightness = Integer.valueOf(c.getProperty("brightness"));
-                    //message += delimiter + (int) Math.ceil((brightness * 255) / 100);
                     message += delimiter + c.getProperty("white");
                 }
                 break;
 
             case "RGB":
-                if (!(c.getProperty("red").equalsIgnoreCase("0") && c.getProperty("green").equalsIgnoreCase("0") && c.getProperty("blue").equalsIgnoreCase("0"))) {
+                if (isValidRGBValue(c.getProperty("red"), c.getProperty("green"), c.getProperty("blue"))) {
                     message = c.getProperty("authometion.command");
                     message += delimiter + c.getProperty("address");
                     message += delimiter + c.getProperty("red") + delimiter + c.getProperty("green") + delimiter + c.getProperty("blue");
+                }
+                break;
+
+            case "RND":
+                red = random.nextInt(maxRGB);
+                green = random.nextInt(maxRGB);
+                blue = random.nextInt(maxRGB);
+                if (isValidRGBValue(String.valueOf(red), String.valueOf(green), String.valueOf(blue))) {
+                    message = "RGB";
+                    message += delimiter + c.getProperty("address");
+                    message += delimiter + String.valueOf(red) + delimiter + String.valueOf(green) + delimiter + String.valueOf(blue);
                 }
                 break;
 
@@ -117,6 +135,7 @@ public class Authometion extends Protocol {
         }
 
         if (!message.equalsIgnoreCase("")) {
+            System.out.println("Message to write " + message);
             writeToSerial(message);
         }
 
@@ -141,6 +160,7 @@ public class Authometion extends Protocol {
             event.addProperty("rgb.blue", payload[4]);
             event.addProperty("white", payload[5]);
             event.addProperty("rssi", payload[6]);
+            System.out.println("Event: " + event.getPayload().getStatements());
             notifyEvent(event);
         }
     }
@@ -150,6 +170,21 @@ public class Authometion extends Protocol {
             serial.write(message + "\r");
         } catch (SerialPortException ex) {
             throw new UnableToExecuteException("Error writing message '" + message + "' to arduino serial board: " + ex.getMessage(), ex);
+        }
+    }
+
+    private void initializeThings() throws UnableToExecuteException {
+        for (EnvObjectLogic object : getApi().things().findByProtocol("authometion")) {
+            System.out.println("Found: " + object.getPojo().getName()+"\n");
+            writeToSerial("RIS" + delimiter + object.getPojo().getPhisicalAddress());
+        }
+    }
+
+    private boolean isValidRGBValue(String red, String green, String blue) {
+        if (!(red.equalsIgnoreCase("0") && green.equalsIgnoreCase("0") && blue.equalsIgnoreCase("0"))) {
+            return true;
+        } else {
+            return false;
         }
     }
 

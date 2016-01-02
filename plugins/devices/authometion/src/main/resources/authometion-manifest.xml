@@ -2,10 +2,11 @@
     <!-- PLUGINS DEFAULT PARAMETERS --> 
     <properties>
         <property name="name" value="authometion"/>
-        <property name="description" value="Controls LYT Rgb lights"/>
+        <property name="description" value="Controls LYT Rgbw lights"/>
         <property name="category" value="protocol"/>
         <property name="short-name" value="authometion"/>
         <property name="protocol.name" value="authometion"/>
+         <property name="startup-time" value="on load"/>
     <!-- SERIAL COMMUNICATION PARAMETERS --> 
         <property name="serial.port" value="/dev/ttyACM0"/>       
         <property name="serial.baudrate" value="9600"/>
