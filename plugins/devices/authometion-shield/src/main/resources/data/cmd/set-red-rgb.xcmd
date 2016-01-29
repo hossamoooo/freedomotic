@@ -1,0 +1,17 @@
+<command>
+    <name>Authometion Shield: Set RGB red value</name>
+    <receiver>app.actuators.protocol.authometion-shield.in</receiver>
+    <description>set the red value of an Authometion LYT/RGBW light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="RGB"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="red" value="@value"/>
+            <property name="green" value="@owner.object.behavior.green"/>
+            <property name="blue" value="@owner.object.behavior.blue"/>
+        </properties>
+    </properties>
+</command>

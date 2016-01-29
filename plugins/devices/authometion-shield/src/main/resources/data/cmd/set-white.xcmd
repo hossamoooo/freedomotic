@@ -1,0 +1,15 @@
+<command>
+    <name>Authometion Shield: Set light white value</name>
+    <receiver>app.actuators.protocol.authometion-shield.in</receiver>
+    <description>set the white value of an Authometion LYT/RGBW light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="SBR"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="white" value="@value"/>
+        </properties>
+    </properties>
+</command>

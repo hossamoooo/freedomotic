@@ -1,0 +1,21 @@
+<trigger>
+    <name>Authometion Shield: reads RGB blue value</name>
+    <description>Authometion reads RGB blue value</description>
+    <channel>app.event.sensor.protocol.read.authometion-shield</channel>
+    <payload>
+        <payload>
+           <statement>
+                <logical>SET</logical>
+                <attribute>behaviorValue</attribute>
+                <operand>EQUALS</operand>
+                <value>@event.rgb.blue</value>
+            </statement>
+        </payload>
+    </payload>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <priority>0</priority>
+    <maxExecutions>-1</maxExecutions>
+    <numberOfExecutions>0</numberOfExecutions>
+    <suspensionTime>0</suspensionTime>
+</trigger>

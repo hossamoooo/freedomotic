@@ -1,0 +1,14 @@
+<command>
+    <name>Authometion Shield: Turn light OFF</name>
+    <receiver>app.actuators.protocol.authometion-shield.in</receiver>
+    <description>turns off the Authometion LYT/RGB light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="POF"/>
+            <property name="address" value="@owner.object.address"/>
+        </properties>
+    </properties>
+</command>
