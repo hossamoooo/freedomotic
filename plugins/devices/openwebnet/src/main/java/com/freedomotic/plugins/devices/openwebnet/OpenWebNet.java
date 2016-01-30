@@ -119,15 +119,15 @@ public class OpenWebNet extends Protocol {
         LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize LIGHTNING", LIGHTNING_DIAGNOSTIC_FRAME);
         OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + LIGHTNING_DIAGNOSTIC_FRAME + " (initialize LIGHTNING)");
         ownHandler.inviaComandoOpen(LIGHTNING_DIAGNOSTIC_FRAME);
-        LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize AUTOMATIONS", AUTOMATIONS_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (initialize AUTOMATIONS)");
-        ownHandler.inviaComandoOpen(AUTOMATIONS_DIAGNOSTIC_FRAME);
-        LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize ALARM", ALARM_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (initialize ALARM)");
-        ownHandler.inviaComandoOpen(ALARM_DIAGNOSTIC_FRAME);
-        LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize POWER MANAGEMENT", POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
-        OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (initialize POWER MANAGEMENT)");
-        ownHandler.inviaComandoOpen(POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
+        //LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize AUTOMATIONS", AUTOMATIONS_DIAGNOSTIC_FRAME);
+        //OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + AUTOMATIONS_DIAGNOSTIC_FRAME + " (initialize AUTOMATIONS)");
+        //ownHandler.inviaComandoOpen(AUTOMATIONS_DIAGNOSTIC_FRAME);
+        //LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize ALARM", ALARM_DIAGNOSTIC_FRAME);
+        //OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + ALARM_DIAGNOSTIC_FRAME + " (initialize ALARM)");
+        //ownHandler.inviaComandoOpen(ALARM_DIAGNOSTIC_FRAME);
+        //LOG.log(Level.INFO, "Sending ''{0}'' frame to initialize POWER MANAGEMENT", POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
+        //OWNFrame.writeAreaLog(OWNUtilities.getDateTime() + " Act:" + "Sending " + POWER_MANAGEMENT_DIAGNOSTIC_FRAME + " (initialize POWER MANAGEMENT)");
+        //ownHandler.inviaComandoOpen(POWER_MANAGEMENT_DIAGNOSTIC_FRAME);
     }
 
     public void buildEventFromFrame(String frame) {
