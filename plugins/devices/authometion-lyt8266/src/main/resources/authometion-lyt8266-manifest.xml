@@ -1,0 +1,14 @@
+<config>
+    <properties>
+        <property name="description" value="Controls Authometion LY8266 bulbs"/>
+        <property name="category" value="protocol"/>
+        <property name="short-name" value="authometion-lyt8266"/>
+        <property name="protocol.name" value="authometion-lyt8266"/>
+        <property name="startup-time" value="on load"/>
+        <property name="broadcast-address" value="192.168.0.255"/>
+        <property name="send-command-udp-port" value="8899"/>
+        <property name="receive-reply-udp-port" value="48899"/>
+    </properties>
+</config>
+
+                
