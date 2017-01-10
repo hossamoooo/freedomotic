@@ -60,17 +60,16 @@ public class RFLink extends Protocol {
     public void onStart() throws PluginStartupException {
         try {
             serial = new SerialHelper(portName, baudRate, dataBits, stopBits, parity, new SerialPortListener() {
-
                 @Override
                 public void onDataAvailable(String data) {
-                    LOG.info("RFLink gateway received: {}", data);
+                    LOG.info("RFLink gateway received: ''{}''", data);
                     sendChanges(data);
                 }
             });
             // in this example it reads until a string terminator (default: new line char)
             serial.setChunkTerminator(chunkTerminator);
         } catch (SerialPortException ex) {
-            throw new PluginStartupException("Error while creating RFLink gateway serial connection. " + ex.getMessage(), ex);
+            throw new PluginStartupException("Error while creating RFLink gateway serial connection for " + ex.getMessage(), ex);
         }
     }
 
@@ -93,7 +92,7 @@ public class RFLink extends Protocol {
         try {
             serial.write(message);
         } catch (SerialPortException ex) {
-            throw new UnableToExecuteException("Error writing message '" + message + "' to RFLink gateway serial board: " + ex.getMessage(), ex);
+            throw new UnableToExecuteException("Error writing message '" + message + "'' to RFLink gateway serial board: " + ex.getMessage(), ex);
         }
     }
 
@@ -105,19 +104,49 @@ public class RFLink extends Protocol {
     private void sendChanges(String data) {
         String[] receivedMessage = data.substring(0, data.length() - 2).split(delimiter);
         String nodeNumber = receivedMessage[0];
-        String deviceID = receivedMessage[1];
         String deviceName = receivedMessage[2];
+        String deviceID = receivedMessage[3].substring(3, receivedMessage[3].length());
         ProtocolRead event;
+        String convertedValue;
 
-        for (int i = 3; i < receivedMessage.length; i++) {
+        if (receivedMessage.length >= 5) {
 
-            event = new ProtocolRead(this, "rflink", deviceID);
-            event.getPayload().addStatement("rflink.node-number", nodeNumber);
-            event.getPayload().addStatement("rflink.node-name", deviceName);
-            String[] payload = receivedMessage[i].split("=");
-            event.getPayload().addStatement("rflink.sensor-type", payload[0]);
-            event.getPayload().addStatement("rflink.sensor-value", payload[1]);
-            notifyEvent(event);
+            for (int i = 4; i < receivedMessage.length; i++) {
+
+                event = new ProtocolRead(this, "rflink", deviceID);
+                event.getPayload().addStatement("rflink.node-number", nodeNumber);
+                event.getPayload().addStatement("rflink.node-name", deviceName);
+                String[] payload = receivedMessage[i].split("=");
+                convertedValue = valuesConvertion(payload[0], payload[1]);
+                event.getPayload().addStatement("rflink.sensor-type", payload[0]);
+                event.getPayload().addStatement("rflink.sensor-value", convertedValue);
+                System.out.println(event.getPayload().getStatements());
+                notifyEvent(event);
+            }
+        }
+    }
+
+    /**
+     * 
+     * 
+     * @param sensorType
+     * @param value
+     * @return 
+     */
+    private String valuesConvertion(String sensorType, String value) {
+
+        String convertedValue;
+
+        switch (sensorType) {
+
+            case "TEMP":
+                convertedValue = String.valueOf(Integer.parseInt(value,16));
+
+                return convertedValue;
+
+
+            default:
+                return value;
         }
     }
 
