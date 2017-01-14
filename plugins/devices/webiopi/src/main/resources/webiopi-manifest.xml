@@ -1,0 +1,12 @@
+<config>
+    <!-- PLUGINS DEFAULT PARAMETERS --> 
+    <properties>
+        <property name="name" value="webiopi"/>
+        <property name="description" value="Plugin for WebIOPi"/>
+        <property name="category" value="protocol"/>
+        <property name="short-name" value="webiopi"/>
+        <property name="protocol.name" value="webiopi"/>
+    </properties>
+</config>
+
+                
