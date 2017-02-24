@@ -1,0 +1,16 @@
+<command>
+    <name>Authometion LYT8266: Turn light ON</name>
+    <receiver>app.actuators.protocol.authometion-lyt8266.in</receiver>
+    <description>turns on the Authometion LYT8266 light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command-name" value="LYT_ON"/>
+            <property name="authometion.command-code" value="6"/>
+            <property name="authometion.command" value="ON"/>
+            <property name="address" value="@owner.object.address"/>
+        </properties>
+    </properties>
+</command>

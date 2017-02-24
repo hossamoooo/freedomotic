@@ -1,0 +1,18 @@
+<command>
+    <name>Authometion LYT8266: Set RGB green value</name>
+    <receiver>app.actuators.protocol.authometion-lyt8266.in</receiver>
+    <description>set green value of the Authometion LYT8266 light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command-name" value="LYT_RGB"/>
+            <property name="authometion.command-code" value="7"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="red" value="@owner.object.behavior.red"/>
+            <property name="green" value="@value"/>
+            <property name="blue" value="@owner.object.behavior.blue"/>
+        </properties>
+    </properties>
+</command>

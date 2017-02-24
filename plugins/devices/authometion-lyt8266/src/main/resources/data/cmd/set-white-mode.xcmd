@@ -1,0 +1,15 @@
+<command>
+    <name>Authometion LYT8266: Set white mode</name>
+    <receiver>app.actuators.protocol.authometion-lyt8266.in</receiver>
+    <description>set white value of the Authometion LYT8266 light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command" value="SETWHITELED"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="white" value="@value"/>
+        </properties>
+    </properties>
+</command>

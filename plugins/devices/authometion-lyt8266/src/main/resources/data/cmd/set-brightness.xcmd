@@ -1,0 +1,17 @@
+<command>
+    <name>Authometion LYT8266: Set brightness value</name>
+    <receiver>app.actuators.protocol.authometion-lyt8266.in</receiver>
+    <description>set brightness of the Authometion LYT8266 light</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="authometion.command-name" value="LYT_BRIGHTNESS"/>
+            <property name="authometion.command-code" value="15"/>
+            <property name="white-mode" value="@owner.object.behavior.white-mode"/>
+            <property name="address" value="@owner.object.address"/>
+            <property name="brightness" value="@value"/>
+        </properties>
+    </properties>
+</command>
