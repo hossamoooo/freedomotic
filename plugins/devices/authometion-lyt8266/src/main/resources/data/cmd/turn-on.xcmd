@@ -8,8 +8,13 @@
     <properties>
         <properties>
             <property name="authometion.command-name" value="LYT_ON"/>
-            <property name="authometion.command-code" value="6"/>
-            <property name="authometion.command" value="ON"/>
+            <property name="authometion.command-code" value="15"/>
+            <property name="red" value="@owner.object.behavior.red"/>
+            <property name="green" value="@owner.object.behavior.green"/>
+            <property name="blue" value="@owner.object.behavior.blue"/>
+            <property name="brightness" value="@owner.object.behavior.brightness"/>
+            <property name="white-mode" value="@owner.object.behavior.white-mode"/> 
+            <property name="powered" value="ON"/>
             <property name="address" value="@owner.object.address"/>
         </properties>
     </properties>

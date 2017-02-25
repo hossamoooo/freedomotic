@@ -9,9 +9,13 @@
         <properties>
             <property name="authometion.command-name" value="LYT_BRIGHTNESS"/>
             <property name="authometion.command-code" value="15"/>
+            <property name="red" value="@owner.object.behavior.red"/>
+            <property name="green" value="@owner.object.behavior.green"/>
+            <property name="blue" value="@owner.object.behavior.blue"/>
             <property name="white-mode" value="@owner.object.behavior.white-mode"/>
             <property name="address" value="@owner.object.address"/>
             <property name="brightness" value="@value"/>
+            <property name="powered" value="@owner.object.behavior.powered"/>
         </properties>
     </properties>
 </command>

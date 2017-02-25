@@ -7,9 +7,15 @@
     <timeout>0</timeout>
     <properties>
         <properties>
-            <property name="authometion.command" value="SETWHITELED"/>
+            <property name="authometion.command-name" value="SET_WHITE_MODE"/>
+            <property name="authometion.command-code" value="15"/>
             <property name="address" value="@owner.object.address"/>
-            <property name="white" value="@value"/>
+            <property name="white-mode" value="@value"/>
+            <property name="brightness" value="@owner.object.behavior.brightness"/>
+            <property name="red" value="@owner.object.behavior.red"/>
+            <property name="green" value="@owner.object.behavior.green"/>
+            <property name="blue" value="@owner.object.behavior.blue"/>
+            <property name="powered" value="@owner.object.behavior.powered"/>
         </properties>
     </properties>
 </command>

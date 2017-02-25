@@ -115,7 +115,7 @@
     <property name="set red" value="Authometion LYT8266: Set RGB red value"/>
     <property name="turn on" value="Authometion LYT8266: Turn light ON"/>
     <property name="set green" value="Authometion LYT8266: Set RGB green value"/>
-    <property name="set white mode" value="Execute it successfully"/>
+    <property name="set white mode" value="Authometion LYT8266: Set white mode"/>
   </actions>
   <triggers>
     <property name="Authometion LTY8266: reads white mode" value="white-mode"/>

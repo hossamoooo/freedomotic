@@ -75,7 +75,7 @@ public class AuthometionLYT8266
         udpServer.startServer("0.0.0.0", RECEIVE_REPLY_UDP_PORT, new UdpListener() {
             @Override
             public void onDataAvailable(String sourceAddress, Integer sourcePort, String data) {
-                LOG.debug("Authometion LYT8266 received: {}", data);
+                LOG.info("Authometion LYT8266 received: \"{}\"", data);
                 try {
                     sendChanges(data);
                 } catch (IOException ex) {
@@ -103,8 +103,23 @@ public class AuthometionLYT8266
             throws IOException, UnableToExecuteException {
 
         String commandToSend = "";
+        String whiteMode = "";
+        String powered = "";
+
+        if (c.getProperty("white-mode").equalsIgnoreCase("true")) {
+            whiteMode = "ON";
+        } else {
+            whiteMode = "OFF";
+        }
+
+        if (c.getProperty("powered").equalsIgnoreCase("true")) {
+            powered = "ON";
+        } else {
+            powered = "OFF";
+        }
 
         switch (c.getProperty("authometion.command-name")) {
+
             case "LYT_BRIGHTNESS":
                 if (c.getProperty("white-mode").equalsIgnoreCase("true")) {
                     commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("red") + "," + c.getProperty("green") + "," + c.getProperty("blue") + "," + c.getProperty("brightness") + ",ON, ON," + c.getProperty("address") + "\r\n";
@@ -113,22 +128,33 @@ public class AuthometionLYT8266
                 }
                 break;
 
+            case "SET_WHITE_MODE":
+                commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("red") + "," + c.getProperty("green") + "," + c.getProperty("blue") + "," + c.getProperty("brightness") + "," + whiteMode + "," + powered + "," + c.getProperty("address") + "\r\n";
+                LOG.info("Set white mode " + commandToSend);
+                break;
+
             case "LYT_RGB":
-                if (isValidRGBValue(c.getProperty("red"), c.getProperty("green"), c.getProperty("blue"))) {
-                    commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("red") + "," + c.getProperty("green") + "," + c.getProperty("blue") + "," + c.getProperty("address") + "\r\n";
+                if (c.getProperty("white-mode").equalsIgnoreCase("false") && isValidRGBValue(c.getProperty("red"), c.getProperty("green"), c.getProperty("blue"))) {
+                    commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("red") + "," + c.getProperty("green") + "," + c.getProperty("blue") + "," + c.getProperty("brightness") + "," + whiteMode + "," + powered + "," + c.getProperty("address") + "\r\n";
                 }
                 break;
 
-            default:
-                commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("authometion.command") + "," + c.getProperty("address") + "\r\n";
+            case "LYT_ON":
+                commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("red") + "," + c.getProperty("green") + "," + c.getProperty("blue") + "," + c.getProperty("brightness") + "," + whiteMode + "," + c.getProperty("powered") + "," + c.getProperty("address") + "\r\n";
+                break;
+
+            case "LYT_OFF":
+                commandToSend = "+" + c.getProperty("authometion.command-code") + "," + c.getProperty("red") + "," + c.getProperty("green") + "," + c.getProperty("blue") + "," + c.getProperty("brightness") + "," + whiteMode + "," + c.getProperty("powered") + "," + c.getProperty("address") + "\r\n";
                 break;
         }
         // sends the command
         udpServer.send(BROADCAST_ADDRESS, SEND_COMMAND_UDP_PORT, commandToSend);
+        LOG.info("Sending command \"{}\"", commandToSend);
 
         // status request
         udpServer.send(BROADCAST_ADDRESS, SEND_COMMAND_UDP_PORT,
-                "+" + c.getProperty("authometion.command-code") + "=" + c.getProperty("address") + "?\r\n");
+                "+15=" + c.getProperty("address") + "?\r\n");
+        LOG.info("Sending status request \"{}\"", "+15=" + c.getProperty("address") + "?\r\n");
     }
 
     /**
@@ -140,71 +166,59 @@ public class AuthometionLYT8266
 
         ProtocolRead event;
         String[] payload;
-
-        // sends status event
-        if (data.startsWith("+6=")) {
-            payload = data.substring(3, data.length() - 2).split(",");
-            event = new ProtocolRead(this, "authometion-lyt8266", payload[1]);
-            event.addProperty("white-mode", "false");
-            if (payload[0].equalsIgnoreCase("ON")) {
-                event.addProperty("isOn", "true");
-            } else {
-                event.addProperty("isOn", "false");
-            }
-            event.addProperty("brightness", getApi().things().findByAddress("authometion-lyt8266", payload[1]).getBehavior("brightness").getValueAsString());
-            event.addProperty("object.name", "LYT8266 " + payload[1]);
-            event.addProperty("object.class", "Authometion LYT8266 Light");
-            notifyEvent(event);
-        }
-
-        if (data.startsWith("+7=")) {
-            payload = data.substring(3, data.length() - 2).split(",");
-            event = new ProtocolRead(this, "authometion-lyt8266", payload[3]);
-            event.addProperty("white-mode", "false");
-            event.addProperty("rgb.red", payload[0]);
-            event.addProperty("rgb.green", payload[1]);
-            event.addProperty("rgb.blue", payload[2]);
-            event.addProperty("object.name", "LYT8266 " + payload[3]);
-            event.addProperty("object.class", "Authometion LYT8266 Light");
-            notifyEvent(event);
-        }
+        String address;
+        String brightness;
+        String whiteMode;
+        String power;
+        String red;
+        String green;
+        String blue;
 
         if (data.startsWith("+15=")) {
-            payload = data.substring(3, data.length() - 2).split(",");
-            event = new ProtocolRead(this, "authometion-lyt8266", payload[6]);
-            event.addProperty("brightness", payload[3]);
-            if (payload[4].equalsIgnoreCase("ON")) {
+            payload = data.substring(4, data.length() - 2).split(",");
+
+            red = payload[0];
+            green = payload[1];
+            blue = payload[2];
+            brightness = payload[3];
+            whiteMode = payload[4];
+            power = payload[5];
+            address = payload[6];
+
+            event = new ProtocolRead(this, "authometion-lyt8266", address);
+            event.addProperty("brightness", brightness);
+            if (whiteMode.equalsIgnoreCase("ON")) {
                 event.addProperty("white-mode", "true");
             } else {
                 event.addProperty("white-mode", "false");
-                event.addProperty("rgb.red", payload[0]);
-                event.addProperty("rgb.green", payload[1]);
-                event.addProperty("rgb.blue", payload[2]);
             }
-            if (payload[5].equalsIgnoreCase("ON")) {
+            event.addProperty("rgb.red", red);
+            event.addProperty("rgb.green", green);
+            event.addProperty("rgb.blue", blue);
+            if (power.equalsIgnoreCase("ON")) {
                 event.addProperty("isOn", "true");
             } else {
                 event.addProperty("isOn", "false");
             }
-            event.addProperty("object.name", "LYT8266 " + payload[6]);
+            event.addProperty("object.name", "LYT8266 " + address);
             event.addProperty("object.class", "Authometion LYT8266 Light");
             notifyEvent(event);
         }
 
         // sends a status request - only for initialization
         if (data.startsWith("+255=")) {
-            payload = data.substring(3, data.length() - 2).split(",");
+            payload = data.substring(5, data.length() - 2).split(",");
             udpServer.send(BROADCAST_ADDRESS, SEND_COMMAND_UDP_PORT, "+15=" + payload[1] + "?\r\n");
         }
 
     }
 
     /**
-     * 
+     *
      * @param red
      * @param green
      * @param blue
-     * @return 
+     * @return
      */
     private boolean isValidRGBValue(String red, String green, String blue) {
         if (!(red.equalsIgnoreCase("0") && green.equalsIgnoreCase("0") && blue.equalsIgnoreCase("0"))) {
