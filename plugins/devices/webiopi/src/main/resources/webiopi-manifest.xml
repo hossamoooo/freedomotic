@@ -6,6 +6,13 @@
         <property name="category" value="protocol"/>
         <property name="short-name" value="webiopi"/>
         <property name="protocol.name" value="webiopi"/>
+        <property name="startup-time" value="on load"/>
+        
+     <!-- RASPBERRY PI CONFIGURATION --> 
+        <property name="raspberry-ip-address" value="127.0.0.1"/>
+        <property name="raspberry-ip-port" value="8000"/>
+        <property name="username" value="webiopi"/>
+        <property name="password" value="raspberry"/>
     </properties>
 </config>
 
