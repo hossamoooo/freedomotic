@@ -46,18 +46,7 @@ public class WebIOPi extends Protocol {
 
     private HttpHelper httpHelper;
 
-    String url = "https://private-anon-857d7cc727-zwayhomeautomation.apiary-mock.com/ZAutomation/api/v1/devices";
-
-    String url2 = "{\"UART0\": 1, \"I2C0\": 0, \"I2C1\": 1, \"SPI0\": 0, \"GPIO\":{\n"
-            + "\"0\": {\"function\": \"IN\", \"value\": 1}, \n"
-            + "\"1\": {\"function\": \"IN\", \"value\": 1}, \n"
-            + "\"2\": {\"function\": \"ALT0\", \"value\": 1}, \n"
-            + "\"3\": {\"function\": \"ALT0\", \"value\": 1}, \n"
-            + "\"4\": {\"function\": \"IN\", \"value\": 0}, \n"
-            + "\"5\": {\"function\": \"ALT0\", \"value\": 0}, \n"
-            + "\"6\": {\"function\": \"OUT\", \"value\": 1}, \n"
-            + "\"53\": {\"function\": \"ALT3\", \"value\": 1}\n"
-            + "}}";
+    String url = "{\"ONEWIRE\": 1, \"GPIO\": {\"0\": {\"value\": 1, \"function\": \"IN\"}, \"1\": {\"value\": 1, \"function\": \"IN\"}, \"2\": {\"value\": 1, \"function\": \"ALT0\"}, \"3\": {\"value\": 1, \"function\": \"ALT0\"}, \"4\": {\"value\": 0, \"function\": \"IN\"}, \"5\": {\"value\": 1, \"function\": \"IN\"}, \"6\": {\"value\": 1, \"function\": \"IN\"}, \"7\": {\"value\": 1, \"function\": \"OUT\"}, \"8\": {\"value\": 1, \"function\": \"OUT\"}, \"9\": {\"value\": 0, \"function\": \"ALT0\"}, \"10\": {\"value\": 0, \"function\": \"ALT0\"}, \"11\": {\"value\": 0, \"function\": \"ALT0\"}, \"12\": {\"value\": 0, \"function\": \"IN\"}, \"13\": {\"value\": 0, \"function\": \"IN\"}, \"14\": {\"value\": 1, \"function\": \"ALT5\"}, \"15\": {\"value\": 1, \"function\": \"ALT5\"}, \"16\": {\"value\": 0, \"function\": \"IN\"}, \"17\": {\"value\": 0, \"function\": \"OUT\"}, \"18\": {\"value\": 0, \"function\": \"OUT\"}, \"19\": {\"value\": 0, \"function\": \"IN\"}, \"20\": {\"value\": 0, \"function\": \"IN\"}, \"21\": {\"value\": 0, \"function\": \"IN\"}, \"22\": {\"value\": 0, \"function\": \"IN\"}, \"23\": {\"value\": 0, \"function\": \"IN\"}, \"24\": {\"value\": 0, \"function\": \"IN\"}, \"25\": {\"value\": 0, \"function\": \"IN\"}, \"26\": {\"value\": 0, \"function\": \"IN\"}, \"27\": {\"value\": 0, \"function\": \"IN\"}, \"28\": {\"value\": 0, \"function\": \"IN\"}, \"29\": {\"value\": 1, \"function\": \"IN\"}, \"30\": {\"value\": 0, \"function\": \"IN\"}, \"31\": {\"value\": 0, \"function\": \"IN\"}, \"32\": {\"value\": 1, \"function\": \"ALT3\"}, \"33\": {\"value\": 1, \"function\": \"ALT3\"}, \"34\": {\"value\": 1, \"function\": \"ALT3\"}, \"35\": {\"value\": 1, \"function\": \"ALT3\"}, \"36\": {\"value\": 1, \"function\": \"ALT3\"}, \"37\": {\"value\": 1, \"function\": \"ALT3\"}, \"38\": {\"value\": 1, \"function\": \"ALT3\"}, \"39\": {\"value\": 1, \"function\": \"ALT3\"}, \"40\": {\"value\": 0, \"function\": \"ALT0\"}, \"41\": {\"value\": 1, \"function\": \"ALT0\"}, \"42\": {\"value\": 0, \"function\": \"ALT0\"}, \"43\": {\"value\": 0, \"function\": \"ALT0\"}, \"44\": {\"value\": 1, \"function\": \"ALT1\"}, \"45\": {\"value\": 1, \"function\": \"ALT1\"}, \"46\": {\"value\": 1, \"function\": \"IN\"}, \"47\": {\"value\": 1, \"function\": \"IN\"}, \"48\": {\"value\": 0, \"function\": \"ALT0\"}, \"49\": {\"value\": 1, \"function\": \"ALT0\"}, \"50\": {\"value\": 1, \"function\": \"ALT0\"}, \"51\": {\"value\": 1, \"function\": \"ALT0\"}, \"52\": {\"value\": 1, \"function\": \"ALT0\"}, \"53\": {\"value\": 1, \"function\": \"ALT0\"}}, \"UART\": 1, \"SPI\": 1, \"I2C\": 1} ";
 
     /**
      *
@@ -65,7 +54,7 @@ public class WebIOPi extends Protocol {
     public WebIOPi() {
         super("WebIOPi", "/webiopi/webiopi-manifest.xml");
         //This disables loop execution od onRun() method
-        setPollingWait(5000); // onRun() executes once.
+        setPollingWait(1000); // onRun() executes once.
     }
 
     @Override
@@ -84,9 +73,9 @@ public class WebIOPi extends Protocol {
     protected void onRun() {
         try {
 
-            String content = httpHelper.retrieveContent("http://" + RASPBERRY_IP + ":" + RASPBERRY_PORT + "/", USERNAME, PASSWORD);
-            //sendChanges(content);
-            //sendChanges(url2);
+            String content = httpHelper.retrieveContent("http://" + RASPBERRY_IP + ":" + RASPBERRY_PORT + "/*", USERNAME, PASSWORD);
+            sendChanges(content);
+            //sendChanges(url);
             LOG.info("Data received from Raspberry Pi \"" + content + "\"");
         } catch (IOException ex) {
             LOG.error(ex.getLocalizedMessage());
@@ -98,9 +87,10 @@ public class WebIOPi extends Protocol {
         JSONObject obj = new JSONObject(content);
         if (obj != null) {
             JSONObject gpio = obj.getJSONObject("GPIO");
-            JSONObject current = gpio.getJSONObject("0");
-            System.out.println(current.getString("function"));
-            System.out.println(current.getInt("value"));
+            for (int i = 0; i < 53; i++) {
+                JSONObject current = gpio.getJSONObject(String.valueOf(i));
+                System.out.println("GPIO " + i + " function: " + current.getString("function") + " value: " + current.getInt("value"));
+            }
         }
 
     }
