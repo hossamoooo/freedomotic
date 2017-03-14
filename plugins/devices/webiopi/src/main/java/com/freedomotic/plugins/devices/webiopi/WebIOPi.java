@@ -26,10 +26,12 @@ import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.helpers.HttpHelper;
 import com.freedomotic.reactions.Command;
 import java.io.IOException;
-import java.util.logging.Level;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -43,7 +45,11 @@ public class WebIOPi extends Protocol {
     private final String PASSWORD = configuration.getStringProperty("password", "raspberry");
     private final String RASPBERRY_IP = configuration.getStringProperty("raspberry-ip-address", "127.0.0.1");
     private final Integer RASPBERRY_PORT = configuration.getIntProperty("raspberry-ip-port", 8000);
+    private final Integer BOARDS_NUMBER = configuration.getTuples().size();
 
+    private static ArrayList<Board> boards = null;
+    private Map<String, Board> devices = new HashMap<String, Board>();
+    private Set<String> keySet = null;
     private HttpHelper httpHelper;
 
     String url = "{\"ONEWIRE\": 1, \"GPIO\": {\"0\": {\"value\": 1, \"function\": \"IN\"}, \"1\": {\"value\": 1, \"function\": \"IN\"}, \"2\": {\"value\": 1, \"function\": \"ALT0\"}, \"3\": {\"value\": 1, \"function\": \"ALT0\"}, \"4\": {\"value\": 0, \"function\": \"IN\"}, \"5\": {\"value\": 1, \"function\": \"IN\"}, \"6\": {\"value\": 1, \"function\": \"IN\"}, \"7\": {\"value\": 1, \"function\": \"OUT\"}, \"8\": {\"value\": 1, \"function\": \"OUT\"}, \"9\": {\"value\": 0, \"function\": \"ALT0\"}, \"10\": {\"value\": 0, \"function\": \"ALT0\"}, \"11\": {\"value\": 0, \"function\": \"ALT0\"}, \"12\": {\"value\": 0, \"function\": \"IN\"}, \"13\": {\"value\": 0, \"function\": \"IN\"}, \"14\": {\"value\": 1, \"function\": \"ALT5\"}, \"15\": {\"value\": 1, \"function\": \"ALT5\"}, \"16\": {\"value\": 0, \"function\": \"IN\"}, \"17\": {\"value\": 0, \"function\": \"OUT\"}, \"18\": {\"value\": 0, \"function\": \"OUT\"}, \"19\": {\"value\": 0, \"function\": \"IN\"}, \"20\": {\"value\": 0, \"function\": \"IN\"}, \"21\": {\"value\": 0, \"function\": \"IN\"}, \"22\": {\"value\": 0, \"function\": \"IN\"}, \"23\": {\"value\": 0, \"function\": \"IN\"}, \"24\": {\"value\": 0, \"function\": \"IN\"}, \"25\": {\"value\": 0, \"function\": \"IN\"}, \"26\": {\"value\": 0, \"function\": \"IN\"}, \"27\": {\"value\": 0, \"function\": \"IN\"}, \"28\": {\"value\": 0, \"function\": \"IN\"}, \"29\": {\"value\": 1, \"function\": \"IN\"}, \"30\": {\"value\": 0, \"function\": \"IN\"}, \"31\": {\"value\": 0, \"function\": \"IN\"}, \"32\": {\"value\": 1, \"function\": \"ALT3\"}, \"33\": {\"value\": 1, \"function\": \"ALT3\"}, \"34\": {\"value\": 1, \"function\": \"ALT3\"}, \"35\": {\"value\": 1, \"function\": \"ALT3\"}, \"36\": {\"value\": 1, \"function\": \"ALT3\"}, \"37\": {\"value\": 1, \"function\": \"ALT3\"}, \"38\": {\"value\": 1, \"function\": \"ALT3\"}, \"39\": {\"value\": 1, \"function\": \"ALT3\"}, \"40\": {\"value\": 0, \"function\": \"ALT0\"}, \"41\": {\"value\": 1, \"function\": \"ALT0\"}, \"42\": {\"value\": 0, \"function\": \"ALT0\"}, \"43\": {\"value\": 0, \"function\": \"ALT0\"}, \"44\": {\"value\": 1, \"function\": \"ALT1\"}, \"45\": {\"value\": 1, \"function\": \"ALT1\"}, \"46\": {\"value\": 1, \"function\": \"IN\"}, \"47\": {\"value\": 1, \"function\": \"IN\"}, \"48\": {\"value\": 0, \"function\": \"ALT0\"}, \"49\": {\"value\": 1, \"function\": \"ALT0\"}, \"50\": {\"value\": 1, \"function\": \"ALT0\"}, \"51\": {\"value\": 1, \"function\": \"ALT0\"}, \"52\": {\"value\": 1, \"function\": \"ALT0\"}, \"53\": {\"value\": 1, \"function\": \"ALT0\"}}, \"UART\": 1, \"SPI\": 1, \"I2C\": 1} ";
@@ -79,6 +85,36 @@ public class WebIOPi extends Protocol {
             LOG.info("Data received from Raspberry Pi \"" + content + "\"");
         } catch (IOException ex) {
             LOG.error(ex.getLocalizedMessage());
+        }
+    }
+
+    private void loadBoards() {
+        if (boards == null) {
+            boards = new ArrayList<Board>();
+        }
+        if (devices == null) {
+            devices = new HashMap<String, Board>();
+        }
+        for (int i = 0; i < BOARDS_NUMBER; i++) {
+            String raspberryPiAddress;
+            String username;
+            String password;
+            String alias;
+            Integer raspberryPiPort;
+            Integer raspberryPiNumberOfPins;
+
+            raspberryPiAddress = configuration.getTuples().getStringProperty(i, "raspberry-ip-address", "127.0.0.1");
+            raspberryPiPort = configuration.getTuples().getIntProperty(i, "raspberry-ip-port", 8000);
+            raspberryPiNumberOfPins = configuration.getTuples().getIntProperty(i, "raspberry-numbers-of-pin", 52);
+            alias = configuration.getTuples().getStringProperty(i, "alias", "raspi1");
+            username = configuration.getTuples().getStringProperty(i, "username", "webiopi");
+            password = configuration.getTuples().getStringProperty(i, "password", "raspberry");
+
+            Board board = new Board(alias, raspberryPiAddress, raspberryPiPort, raspberryPiNumberOfPins, username, password);
+
+            boards.add(board);
+            // add board object and its alias as key for the hashmap
+            devices.put(alias, board);
         }
     }
 

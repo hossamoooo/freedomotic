@@ -13,6 +13,20 @@
         <property name="raspberry-ip-port" value="8000"/>
         <property name="username" value="webiopi"/>
         <property name="password" value="raspberry"/>
+
+     <tuples>
+     <!-- RASPBERRY PI CONFIGURATION -->
+        <tuple>
+            <property name="alias" value="raspi1"/>
+            <property name="raspberry-ip-address" value="127.0.0.1"/>
+            <property name="raspberry-ip-port" value="8000"/>
+            <property name="number-of-pins" value="52"/>
+            <property name="username" value="webiopi"/>
+            <property name="password" value="raspberry"/>
+        </tuple>
+    </tuples>
+
+
     </properties>
 </config>
 
