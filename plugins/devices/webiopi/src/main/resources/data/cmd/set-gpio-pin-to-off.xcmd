@@ -1,0 +1,16 @@
+<command>
+    <name>Set GPIO pin to OFF</name>
+    <receiver>app.actuators.protocol.webiopi.in</receiver>
+    <description>sets gpio pin to off</description>
+    <hardwareLevel>true</hardwareLevel>
+    <delay>0</delay>
+    <timeout>0</timeout>
+    <properties>
+        <properties>
+            <property name="command" value="SET-GPIO-VALUE"/>
+            <property name="pin-number" value="@owner.object.address"/>
+            <property name="function" value="GPIO"/>
+            <property name="value" value="0"/>
+        </properties>
+    </properties>
+</command>

@@ -134,6 +134,39 @@ public class WebIOPi extends Protocol {
     @Override
     protected void onCommand(Command c) throws UnableToExecuteException {
 
+        // bisogna fare lo split dell'indirizzo dell'oggetto
+        // recuperare ip e porta dall'alias
+        String command = c.getProperty("command");
+        String pinNumber = c.getProperty("pin-number");
+        String function = c.getProperty("function");
+        String value = c.getProperty("value");
+        String url1 = "http://";
+        String url2 = "";
+
+        switch (command) {
+
+            case "SET-GPIO-VALUE":
+
+                url2 = "/" + function + "/" + pinNumber + "/value/" + value;
+                break;
+
+            case "OUTPUT-SINGLE-PULSE":
+
+                break;
+
+            case "OUTPUT-BIT-SEQUENCE":
+
+                break;
+
+            case "OUTPUT-PWM-ANGLE-SERVO":
+
+                break;
+
+        }
+
+        url1 = url1 + url2;
+        // richiesta POST
+        
     }
 
     @Override
