@@ -2,12 +2,11 @@
     <properties>
         <property name="name" value="harvester"/>
         <property name="description" value="Database for storing and retrieving Freedomotic events"/>
-        <property name="category"       value="protocol"/>
-        <property name="protocol.name"  value="harvester"/>
+        <property name="category" value="protocol"/>
+        <property name="protocol.name" value="harvester"/>
         <property name="short-name" value="harvester"/>
-        <property name="startup-time"   value="on load"/>
-        
-        <property name="driver" value="h2"/> 
+        <property name="startup-time" value="on load"/>
+        <property name="driver" value="sqlite"/> 
         <!-- <property name="log.options" value="DefaultLevel=WARN, Runtime=INFO, Tool=INFO, SQL=TRACE"/> -->
     </properties>
 </config>

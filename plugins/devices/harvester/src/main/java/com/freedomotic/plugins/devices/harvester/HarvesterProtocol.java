@@ -21,12 +21,13 @@ package com.freedomotic.plugins.devices.harvester;
 
 import com.freedomotic.api.EventTemplate;
 import com.freedomotic.api.Protocol;
-import com.freedomotic.app.Freedomotic;
 import com.freedomotic.events.ProtocolRead;
 import com.freedomotic.exceptions.UnableToExecuteException;
 import com.freedomotic.model.charting.UsageData;
 import com.freedomotic.model.charting.UsageDataFrame;
 import com.freedomotic.model.ds.Tuples;
+import static com.freedomotic.plugins.devices.harvester.PersistenceUtility.generateCalendarInMillis;
+import static com.freedomotic.plugins.devices.harvester.PersistenceUtility.isTimestampExistingOnEventProperties;
 import com.freedomotic.things.EnvObjectLogic;
 import com.freedomotic.reactions.Command;
 import java.io.ByteArrayOutputStream;
@@ -34,11 +35,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -47,7 +47,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
-import org.apache.openjpa.persistence.ArgumentException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +57,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class HarvesterProtocol extends Protocol {
 
-    //Connection connection;
-    //PreparedStatement prep;
     EntityManagerFactory factory;
     EntityManager em;
     Properties props;
@@ -81,8 +78,7 @@ public final class HarvesterProtocol extends Protocol {
         if (em != null && em.getTransaction().isActive()) {
             em.getTransaction().commit();
         }
-        //em.getTransaction().begin();
-    }
+            }
 
     @Override
     public void onStart() {
@@ -92,21 +88,19 @@ public final class HarvesterProtocol extends Protocol {
 
             props = new Properties();
             props.loadFromXML(new FileInputStream(this.getFile().getParent() + File.separator + dbType + ".xml"));
-            props.put("openjpa.MetaDataFactory", "org.apache.openjpa.persistence.jdbc.PersistenceMappingFactory(Types=" + UsageData.class.getCanonicalName() + ";)");
-            props.put("openjpa.TransactionMode", "local");
-            props.put("openjpa.jdbc.SynchronizeMappings", "buildSchema");
-            props.put("openjpa.RemoteCommitProvider", "sjvm");
-            props.put("openjpa.Log", configuration.getStringProperty("log.options", "DefaultLevel=WARN, Runtime=INFO, Tool=INFO"));
+            //props.put("openjpa.MetaDataFactory", "org.apache.openjpa.persistence.jdbc.PersistenceMappingFactory(Types=" + UsageData.class.getCanonicalName() + ";)");
+            //props.put("openjpa.TransactionMode", "local");
+            //props.put("openjpa.jdbc.SynchronizeMappings", "buildSchema");
+            //props.put("openjpa.RemoteCommitProvider", "sjvm");
+            //props.put("openjpa.Log", configuration.getStringProperty("log.options", "DefaultLevel=WARN, Runtime=INFO, Tool=INFO"));
 
-            factory = Persistence.createEntityManagerFactory("UsageData", props);
+            factory = Persistence.createEntityManagerFactory("HarvesterPU", props);
             em = factory.createEntityManager();
-            //setDescription("Saving data to: " + em.getProperties().get("openjpa.ConnectionURL")); // works only with JPA 2.0
+            //setDescription("Saving data to: " + em.getProperties().get("hibernate.connection.url")); // works only with JPA 2.0
             setDescription("Connected to database");
             setPollingWait(2000);
         } catch (FileNotFoundException e) {
-            LOG.error("Unable to find configuration file for harvester of type: {}", dbType);
-        } catch (ArgumentException e) {
-            LOG.warn("ArgumentException {}", e.getLocalizedMessage());
+            LOG.error("Unable to find configuration file for Harvester of type: {}", dbType);
         } catch (Exception e) {
             LOG.error("Exception {}", e.getLocalizedMessage());
             e.printStackTrace();
@@ -118,7 +112,6 @@ public final class HarvesterProtocol extends Protocol {
     @Override
     public void onStop() {
         setPollingWait(-1); // disable polling
-
         try {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().commit();
@@ -244,16 +237,21 @@ public final class HarvesterProtocol extends Protocol {
         try {
             UsageData item = new UsageData();
 
-            Timestamp ts = new java.sql.Timestamp(
-                    Integer.parseInt(c.getProperty("event.date.year")) - 1900,
-                    Integer.parseInt(c.getProperty("event.date.month")) - 1,
-                    Integer.parseInt(c.getProperty("event.date.day")),
-                    Integer.parseInt(c.getProperty("event.time.hour")),
-                    Integer.parseInt(c.getProperty("event.time.minute")),
-                    Integer.parseInt(c.getProperty("event.time.second")),
-                    0);
+            Long ts = Calendar.getInstance().getTimeInMillis();
 
-            item.setDateTime(ts);
+            if (isTimestampExistingOnEventProperties(c)) {
+                ts = generateCalendarInMillis(c);
+            }
+
+            //Timestamp ts = new java.sql.Timestamp(
+            //      Integer.parseInt(c.getProperty("event.date.year")) - 1900,
+            //      Integer.parseInt(c.getProperty("event.date.month")) - 1,
+            //      Integer.parseInt(c.getProperty("event.date.day")),
+            //      Integer.parseInt(c.getProperty("event.time.hour")),
+            //      Integer.parseInt(c.getProperty("event.time.minute")),
+            //      Integer.parseInt(c.getProperty("event.time.second")),
+            //      0);
+            item.setDateTime(new Date(ts));
             item.setObjName(c.getProperty("event.object.name"));
             item.setObjProtocol(c.getProperty("event.object.protocol"));
             item.setObjAddress(c.getProperty("event.object.address"));

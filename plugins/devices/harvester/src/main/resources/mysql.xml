@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>  
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
+
+    <!-- Hibernate properties -->
+    <entry key="hibernate.connection.driver_class">com.mysql.jdbc.Driver</entry>
+    <entry key="hibernate.connection.url">jdbc:mysql://localhost/harvester</entry>
+    <entry key="hibernate.connection.username">root</entry>
+    <entry key="hibernate.connection.password">root</entry>  
+    <entry key="hibernate.hbm2ddl.auto">validate</entry>
+ 
+    <!-- OpenJPA properties
     <entry key="openjpa.ConnectionDriverName">com.mysql.jdbc.Driver</entry>
     <entry key="openjpa.ConnectionURL">jdbc:mysql://localhost/harvester</entry>
     <entry key="openjpa.ConnectionUserName">root</entry>
     <entry key="openjpa.ConnectionPassword">root</entry>  
+    -->
+ 
 </properties>
