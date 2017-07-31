@@ -21,18 +21,17 @@ package com.freedomotic.plugins.devices.restapiv3.resources.jersey;
 
 import com.freedomotic.plugins.devices.restapiv3.utils.AbstractResource;
 import com.freedomotic.reactions.Trigger;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.logging.Level;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
  *
- * @author matteo
+ * @author Matteo Mazzoni
  */
 @Path("triggers")
 @Api(value = "/triggers", description = "Operations on triggers", position = 4)

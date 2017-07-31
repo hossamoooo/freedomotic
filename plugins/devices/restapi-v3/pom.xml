@@ -53,12 +53,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <!--         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>freedomotic-marketplace</artifactId>
-            <version>3.0</version>
-            <scope>test</scope>
-        </dependency> -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>freedomotic-core</artifactId>
@@ -80,11 +74,25 @@
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>${jersey.version}</version>
         </dependency>
+        <!--
         <dependency>
-            <groupId>com.wordnik</groupId>
-            <artifactId>swagger-jaxrs_2.11</artifactId>
-            <version>1.3.12</version>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jersey2-jaxrs</artifactId>
+            <version>1.5.16</version>
             <scope>provided</scope>
+        </dependency>
+        -->
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-core</artifactId>
+            <scope>compile</scope>
+            <version>1.5.16</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>jsr311-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.test-framework</groupId>
@@ -147,50 +155,40 @@
             <plugin>
                 <groupId>com.github.kongchen</groupId>
                 <artifactId>swagger-maven-plugin</artifactId>
-                <version>2.2</version>
+                <version>3.0.0</version>
                 <configuration>
                     <apiSources>
                         <apiSource>
+                            <info>
+                                <title>Freedomotic API</title>
+                                <version>v3</version>
+                                <description>
+                                    Freedomotic RESTful API
+                                </description>
+                                <contact>
+                                    <email>info@freedomotic.com</email>
+                                    <name>Freedomotic Team</name>
+                                    <url>http://www.freedomotic.com</url>
+                                </contact>
+                                <license>
+                                    <url>http://www.gnu.org/licenses/old-licenses/gpl-2.0.html</url>
+                                    <name>GNU GPLv2</name>
+                                </license>
+                            </info>
                             <locations>com.freedomotic.plugins.devices.restapiv3.resources</locations>
-                            <apiVersion>v3</apiVersion>
                             <basePath>/v3</basePath>
-                            <outputTemplate>
-                                https://raw.github.com/kongchen/api-doc-template/master/v2.0/markdown.mustache
-                            </outputTemplate>
+                            <templatePath>${basedir}/src/main/resources/data/swagger/templates/markdown.hbs</templatePath>
                             <outputPath>${basedir}/src/main/resources/data/swagger/apidocs/strapdown.html</outputPath>
                             <swaggerDirectory>${basedir}/src/main/resources/data/swagger/api-docs</swaggerDirectory>
-                            <!--swaggerUIDocBasePath>/api-docs</swaggerUIDocBasePath-->
-                            <!--useOutputFlatStructure>false</useOutputFlatStructure-->
-                            <!--mustacheFileRoot>${basedir}/src/main/resources/</mustacheFileRoot-->
                         </apiSource>
                     </apiSources>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>process-classes</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <inherited>false</inherited>
-                <executions>
-                    <execution>
-                        <id>swagger-docs</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy file="src/main/resources/data/swagger/api-docs/service.json" tofile="src/main/resources/data/swagger/api-docs/index.html"/>
-                            </target>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

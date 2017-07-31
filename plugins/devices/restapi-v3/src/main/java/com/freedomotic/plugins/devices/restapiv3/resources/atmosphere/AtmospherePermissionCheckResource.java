@@ -35,7 +35,7 @@ import com.freedomotic.security.User;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.annotations.Api;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;

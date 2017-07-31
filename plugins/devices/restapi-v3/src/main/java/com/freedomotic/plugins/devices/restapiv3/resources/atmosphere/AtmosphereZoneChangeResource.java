@@ -24,7 +24,7 @@ import com.freedomotic.api.EventTemplate;
 import com.freedomotic.environment.EnvironmentLogic;
 import com.freedomotic.environment.ZoneLogic;
 import com.freedomotic.plugins.devices.restapiv3.RestAPIv3;
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.annotations.Api;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import org.atmosphere.client.TrackMessageSizeInterceptor;

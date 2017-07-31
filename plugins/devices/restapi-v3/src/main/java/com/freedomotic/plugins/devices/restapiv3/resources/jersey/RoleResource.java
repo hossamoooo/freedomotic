@@ -19,11 +19,10 @@
  */
 package com.freedomotic.plugins.devices.restapiv3.resources.jersey;
 
-import com.freedomotic.plugins.devices.restapiv3.filters.ItemNotFoundException;
 import com.freedomotic.plugins.devices.restapiv3.representations.RoleRepresentation;
 import com.freedomotic.plugins.devices.restapiv3.utils.AbstractResource;
 import com.freedomotic.security.User;
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.annotations.Api;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
