@@ -155,12 +155,12 @@
             <plugin>
                 <groupId>com.github.kongchen</groupId>
                 <artifactId>swagger-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.5</version>
                 <configuration>
                     <apiSources>
                         <apiSource>
                             <info>
-                                <title>Freedomotic API</title>
+                                <title>Freedomotic REST API</title>
                                 <version>v3</version>
                                 <description>
                                     Freedomotic RESTful API
@@ -175,17 +175,19 @@
                                     <name>GNU GPLv2</name>
                                 </license>
                             </info>
-                            <locations>com.freedomotic.plugins.devices.restapiv3.resources</locations>
+                            <locations>
+                                <location>com.freedomotic.plugins.devices.restapiv3.resources</location>
+                            </locations>
                             <basePath>/v3</basePath>
-                            <templatePath>${basedir}/src/main/resources/data/swagger/templates/markdown.hbs</templatePath>
-                            <outputPath>${basedir}/src/main/resources/data/swagger/apidocs/strapdown.html</outputPath>
+                            <templatePath>${basedir}/src/main/resources/data/swagger/templates/strapdown.html.hbs</templatePath>
+                            <outputPath>${basedir}/src/main/resources/data/swagger/generated/strapdown.html</outputPath>
                             <swaggerDirectory>${basedir}/src/main/resources/data/swagger/api-docs</swaggerDirectory>
                         </apiSource>
                     </apiSources>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
