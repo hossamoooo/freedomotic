@@ -23,6 +23,7 @@ import com.freedomotic.app.Freedomotic;
 import com.freedomotic.core.ResourcesManager;
 import com.freedomotic.things.EnvObjectLogic;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
@@ -54,8 +55,13 @@ public class WidgetTest {
             String name = obj.getPojo().getCurrentRepresentation().getIcon();
             BufferedImage resource = ResourcesManager.getResource(name);
             Graphics2D canvas = resource.createGraphics();
-            canvas.setColor(Color.red);
-            canvas.fillRect(0, 0, (int) 10, (int) resource.getHeight());
+            if (obj.getPojo().getSimpleType().equalsIgnoreCase("thermometer")) {
+                canvas.setColor(Color.RED);
+                canvas.fillRect(0, 0, (int) 64, (int) resource.getHeight());
+                canvas.setFont(new Font("Arial", Font.BOLD, 20));
+                canvas.setColor(Color.BLACK);
+                canvas.drawString(obj.getBehavior("temperature").getValueAsString(), 5, 40);
+            }
             return resource;
         } catch (Exception e) {
             Freedomotic.getStackTraceInfo(e);

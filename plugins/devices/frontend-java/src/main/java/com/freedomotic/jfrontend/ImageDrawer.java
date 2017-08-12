@@ -77,9 +77,12 @@ public class ImageDrawer extends PlainDrawer {
             if ((obj.getPojo().getCurrentRepresentation().getIcon() != null)
                     && !obj.getPojo().getCurrentRepresentation().getIcon().equalsIgnoreCase("")) {
                 try {
-                    //WidgetTest widget = new WidgetTest(obj);
-                    //paintImage(widget.draw());
-                    paintImage(obj.getPojo());
+                   // if (obj.getPojo().getSimpleType().equalsIgnoreCase("thermometer")) {
+                        WidgetTest widget = new WidgetTest(obj);
+                        paintImage(widget.draw());
+                   // } else {
+                   //     paintImage(obj.getPojo());
+                   // }
                 } catch (RuntimeException e) {
                     drawPlainObject(obj);
                 } finally {
