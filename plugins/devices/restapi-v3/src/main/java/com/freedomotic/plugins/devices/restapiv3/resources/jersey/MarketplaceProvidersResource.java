@@ -139,7 +139,7 @@ public class MarketplaceProvidersResource extends AbstractReadOnlyResource<IMark
     public Response upgrade(
             @ApiParam(value = "Index of marketplace provider", required = true)
             @PathParam("id") int id) {
-        for (Client c : api.getClients("plugin")) {
+        for (Client c : API.getClients("plugin")) {
             Plugin p = (Plugin) c;
             for (IPluginPackage pp : mps.getProviders().get(id).getAvailablePackages()) {
                 String freedomoticVersion = Info.getMajor() + "." + Info.getMinor();
@@ -147,13 +147,13 @@ public class MarketplaceProvidersResource extends AbstractReadOnlyResource<IMark
                         && !pp.getFilePath(freedomoticVersion).isEmpty()
                         && pp.getTitle() != null) {
                     String packageVersion = MarketplaceResource.extractVersion(new File(pp.getFilePath(freedomoticVersion)).getName());
-                    int result = api.getClientStorage().compareVersions(pp.getTitle(), packageVersion);
+                    int result = API.getClientStorage().compareVersions(pp.getTitle(), packageVersion);
                     switch (result) {
                         case -1:  //older version or not yet installed -> INSTALL
                             break;
                         case 1:  //newer version -> UPGRADE
                             try {
-                                api.getPluginManager().installBoundle(new URL(pp.getFilePath(freedomoticVersion)));
+                                API.getPluginManager().installBoundle(new URL(pp.getFilePath(freedomoticVersion)));
                             } catch (MalformedURLException e) {
                             }
                             break;
@@ -178,7 +178,7 @@ public class MarketplaceProvidersResource extends AbstractReadOnlyResource<IMark
         boolean done = false;
         String freedomoticVersion = Info.getMajor() + "." + Info.getMinor();
         String pluginPath = "";
-        PluginsManager plugMgr = api.getPluginManager();
+        PluginsManager plugMgr = API.getPluginManager();
         for (IPluginPackage pp : mps.getPackageList()) {
             if (pp.getURI().endsWith(nid)) {
                 pluginPath = pp.getFilePath(freedomoticVersion);
