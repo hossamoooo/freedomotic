@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.zip.ZipEntry;
@@ -44,6 +46,7 @@ import java.util.zip.ZipFile;
 public class Unzip {
 
     private static final Logger LOG = LoggerFactory.getLogger(Unzip.class.getName());
+    private static final int BUFFER = 2048;
 
     private Unzip() {
     }
@@ -54,69 +57,60 @@ public class Unzip {
      * @throws ZipException
      * @throws IOException
      */
-    static public void unzip(String zipFile) throws IOException {
+    public static void unzip(String zipFile) throws IOException {
 
-        final int BUFFER = 2048;
+        if (StringUtils.isEmpty(zipFile)) {
+            LOG.error("File path not provided, no unzipping performed");
+            return;
+        }
+
         File file = new File(zipFile);
 
-        ZipFile zip = new ZipFile(file);
-        String newPath = zipFile.substring(0, zipFile.length() - 4);
-        //simulates the unzip here feature
-        newPath = newPath.substring(0, newPath.lastIndexOf(File.separator));
+        if (!file.exists()) {
+            LOG.error("File not existing, no unzipping performed");
+            return;
+        }
 
-        Enumeration<? extends ZipEntry> zipFileEntries = zip.entries();
+        try (ZipFile zip = new ZipFile(file);) {
+            String newPath = zipFile.substring(0, zipFile.length() - 4);
+            //simulates the unzip here feature
+            newPath = newPath.substring(0, newPath.lastIndexOf(File.separator));
 
-        // Process each entry
-        while (zipFileEntries.hasMoreElements()) {
-            // grab a zip file entry
-            ZipEntry entry = zipFileEntries.nextElement();
-            String currentEntry = entry.getName();
-            File destFile = new File(newPath, currentEntry);
-            File destinationParent = destFile.getParentFile();
+            Enumeration<? extends ZipEntry> zipFileEntries = zip.entries();
 
-            // create the parent directory structure if needed
-            destinationParent.mkdirs();
-            BufferedOutputStream dest = null;
-            BufferedInputStream is = null;
-            FileOutputStream fos = null;
-            try {
+            // Process each entry
+            while (zipFileEntries.hasMoreElements()) {
+                // grab a zip file entry
+                ZipEntry entry = zipFileEntries.nextElement();
+                String currentEntry = entry.getName();
+                File destFile = new File(newPath, currentEntry);
+                File destinationParent = destFile.getParentFile();
+
+                // create the parent directory structure if needed
+                destinationParent.mkdirs();
+
                 if (!entry.isDirectory()) {
-                    is = new BufferedInputStream(zip.getInputStream(entry));
-                    int currentByte;
+                    try (BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
+                            FileOutputStream fos = new FileOutputStream(destFile);
+                            BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);) {
 
-                    // establish buffer for writing file
-                    byte[] data = new byte[BUFFER];
+                        int currentByte;
 
-                    // write the current file to disk
-                    fos = new FileOutputStream(destFile);
-                    dest = new BufferedOutputStream(fos, BUFFER);
+                        // establish buffer for writing file
+                        byte[] data = new byte[BUFFER];
 
-                    // read and write until last byte is encountered
-                    while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
-                        dest.write(data, 0, currentByte);
+                        // read and write until last byte is encountered
+                        while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
+                            dest.write(data, 0, currentByte);
+                        }
+                    } catch (IOException ex) {
+                        LOG.error(Freedomotic.getStackTraceInfo(ex));
                     }
+                }
 
-                }
-            } catch (IOException ex) {
-                LOG.error(Freedomotic.getStackTraceInfo(ex));
-            } finally {
-                if (dest != null) {
-                    dest.flush();
-                    dest.close();
-                }
-                if (is != null) {
-                    is.close();
-                }
-                if (fos != null) {
-                    fos.close();
-                }
-            }
-
-            if (currentEntry.endsWith(".zip")) {
-                // found a zip file, try to open
-                unzip(destFile.getAbsolutePath());
-                if (zip != null) {
-                    zip.close();
+                if (currentEntry.endsWith(".zip")) {
+                    // found a zip file, try to open
+                    unzip(destFile.getAbsolutePath());
                 }
             }
         }

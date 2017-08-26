@@ -22,7 +22,6 @@ package com.freedomotic.plugins.devices.restapiv3.resources.jersey;
 import com.freedomotic.marketplace.IPluginCategory;
 import com.freedomotic.marketplace.IPluginPackage;
 import com.freedomotic.marketplace.MarketPlaceService;
-import com.freedomotic.plugins.PluginsManager;
 import com.freedomotic.plugins.devices.restapiv3.filters.ItemNotFoundException;
 import com.freedomotic.plugins.devices.restapiv3.utils.AbstractReadOnlyResource;
 import com.freedomotic.settings.Info;
@@ -33,7 +32,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.GET;
@@ -111,7 +109,7 @@ public class MarketplacePluginsResource extends AbstractReadOnlyResource<IPlugin
             throw new ItemNotFoundException(uuid);
         }
         try {
-            api.getPluginManager().installBoundle(new URL(url));
+            API.getPluginManager().installBoundle(new URL(url));
         } catch (MalformedURLException ex) {
             return Response.notAcceptable(null).build();
         }
