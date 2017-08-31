@@ -42,14 +42,14 @@ import org.slf4j.LoggerFactory;
 public class CustomizeCommand
         extends javax.swing.JFrame {
 
+    private final static Logger LOG = LoggerFactory.getLogger(CustomizeCommand.class.getName());
     private Command original;
     private DefaultTableModel model = new DefaultTableModel();
     private JTable table;
-    private final I18n I18n;
+    private transient final I18n i18n;
     @Inject
-    private ClientStorage clients;
-    private final CommandRepository commandRepository;
-    private final static Logger LOG = LoggerFactory.getLogger(CustomizeCommand.class.getName());
+    private transient ClientStorage clients;
+    private transient final CommandRepository commandRepository;
 
     /**
      * Creates new form CustomizeEvent
@@ -59,15 +59,15 @@ public class CustomizeCommand
      * @param commandRepository
      */
     public CustomizeCommand(I18n i18n, Command original, CommandRepository commandRepository) {
-        this.I18n = i18n;
+        this.i18n = i18n;
         this.commandRepository = commandRepository;
         initComponents();
         this.original = original;
         txtName.setText(original.getName());
         txtDescription.setText(original.getDescription());
 
-        model.addColumn(I18n.msg("property"));
-        model.addColumn(I18n.msg("value"));
+        model.addColumn(i18n.msg("property"));
+        model.addColumn(i18n.msg("value"));
         table = new JTable(model);
         pnlParam.add(table);
 
@@ -112,15 +112,15 @@ public class CustomizeCommand
             c.setReceiver(original.getReceiver());
         }
 
-        LOG.debug("Receiver for {} is: {}", c.getName(), c.getReceiver());
+        LOG.debug("Receiver for \"{}\" is: \"{}\"", c.getName(), c.getReceiver());
 
         for (int r = 0; r < model.getRowCount(); r++) {
             c.setProperty(model.getValueAt(r, 0).toString(),
                     model.getValueAt(r, 1).toString());
         }
-
-        LOG.debug(c.getProperties().toString());
-
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(c.getProperties().toString());
+        }
         return c;
     }
 
@@ -131,177 +131,143 @@ public class CustomizeCommand
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents(  )
-    {
-        btnSave = new javax.swing.JButton(  );
-        jLabel1 = new javax.swing.JLabel(  );
-        txtName = new javax.swing.JTextField(  );
-        jLabel2 = new javax.swing.JLabel(  );
-        txtDescription = new javax.swing.JTextField(  );
-        jLabel3 = new javax.swing.JLabel(  );
-        btnEdit = new javax.swing.JButton(  );
-        cmbReceiver = new javax.swing.JComboBox(  );
-        txtReceiver = new javax.swing.JLabel(  );
-        btnChangeReceiver = new javax.swing.JButton(  );
-        btnDelete = new javax.swing.JButton(  );
-        jScrollPane1 = new javax.swing.JScrollPane(  );
-        pnlParam = new javax.swing.JPanel(  );
-        txtAddRow = new javax.swing.JButton(  );
+    private void initComponents() {
 
-        setDefaultCloseOperation( javax.swing.WindowConstants.DISPOSE_ON_CLOSE );
+        btnSave = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        txtName = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        txtDescription = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        btnEdit = new javax.swing.JButton();
+        cmbReceiver = new javax.swing.JComboBox();
+        txtReceiver = new javax.swing.JLabel();
+        btnChangeReceiver = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        pnlParam = new javax.swing.JPanel();
+        txtAddRow = new javax.swing.JButton();
 
-        btnSave.setText( I18n.msg( "save_as_new" ) );
-        btnSave.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnSaveActionPerformed( evt );
-                }
-            } );
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setText( I18n.msg( "name" ) + ":" );
+        btnSave.setText(i18n.msg("save_as_new"));
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
-        jLabel2.setText( I18n.msg( "description" ) + ":" );
+        jLabel1.setText(i18n.msg("name")+":");
 
-        jLabel3.setText( I18n.msg( "parameters" ) + ":" );
+        jLabel2.setText(i18n.msg("description")+":");
 
-        btnEdit.setText( I18n.msg( "save_changes" ) );
-        btnEdit.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnEditActionPerformed( evt );
-                }
-            } );
+        jLabel3.setText(i18n.msg("parameters")+":");
 
-        cmbReceiver.setEnabled( false );
+        btnEdit.setText(i18n.msg("save_changes"));
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditActionPerformed(evt);
+            }
+        });
 
-        txtReceiver.setText( I18n.msg( "performed_by" ) );
-        txtReceiver.setEnabled( false );
+        cmbReceiver.setEnabled(false);
 
-        btnChangeReceiver.setText( I18n.msg( "change" ) );
-        btnChangeReceiver.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnChangeReceiverActionPerformed( evt );
-                }
-            } );
+        txtReceiver.setText(i18n.msg("performed_by"));
+        txtReceiver.setEnabled(false);
 
-        btnDelete.setText( I18n.msg( "delete_X",
-                                     new Object[] { I18n.msg( "command" ) } ) );
-        btnDelete.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnDeleteActionPerformed( evt );
-                }
-            } );
+        btnChangeReceiver.setText(i18n.msg("change"));
+        btnChangeReceiver.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnChangeReceiverActionPerformed(evt);
+            }
+        });
 
-        jScrollPane1.setVerticalScrollBarPolicy( javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS );
+        btnDelete.setText(i18n.msg("delete_X",new Object[]{i18n.msg("command")}));
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
-        pnlParam.setLayout( new java.awt.BorderLayout(  ) );
-        jScrollPane1.setViewportView( pnlParam );
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        txtAddRow.setText( I18n.msg( "add_X",
-                                     new Object[] { I18n.msg( "parameter" ) } ) );
-        txtAddRow.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    txtAddRowActionPerformed( evt );
-                }
-            } );
+        pnlParam.setLayout(new java.awt.BorderLayout());
+        jScrollPane1.setViewportView(pnlParam);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout( getContentPane(  ) );
-        getContentPane(  ).setLayout( layout );
-        layout.setHorizontalGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                         .addGroup( layout.createSequentialGroup(  ).addContainerGap(  )
-                                                          .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                           .addComponent( jScrollPane1,
-                                                                                          javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                          590, Short.MAX_VALUE )
-                                                                           .addGroup( layout.createSequentialGroup(  )
-                                                                                            .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                                                             .addComponent( jLabel1,
-                                                                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                            103,
-                                                                                                                            javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                             .addComponent( jLabel2 )
-                                                                                                             .addComponent( txtReceiver ) )
-                                                                                            .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                            .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                                                             .addComponent( txtDescription,
-                                                                                                                            javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                            483,
-                                                                                                                            Short.MAX_VALUE )
-                                                                                                             .addGroup( layout.createSequentialGroup(  )
-                                                                                                                              .addComponent( cmbReceiver,
-                                                                                                                                             0,
-                                                                                                                                             385,
-                                                                                                                                             Short.MAX_VALUE )
-                                                                                                                              .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                              .addComponent( btnChangeReceiver ) )
-                                                                                                             .addComponent( txtName,
-                                                                                                                            javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                            483,
-                                                                                                                            Short.MAX_VALUE ) ) )
-                                                                           .addGroup( layout.createSequentialGroup(  )
-                                                                                            .addComponent( jLabel3 )
-                                                                                            .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                            .addComponent( txtAddRow ) )
-                                                                           .addGroup( layout.createSequentialGroup(  )
-                                                                                            .addComponent( btnEdit )
-                                                                                            .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.UNRELATED )
-                                                                                            .addComponent( btnSave,
-                                                                                                           javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                           165,
-                                                                                                           javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                            .addGap( 10, 10, 10 )
-                                                                                            .addComponent( btnDelete ) ) )
-                                                          .addContainerGap(  ) ) );
-        layout.setVerticalGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                       .addGroup( layout.createSequentialGroup(  ).addContainerGap(  )
-                                                        .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                         .addComponent( jLabel1 )
-                                                                         .addComponent( txtName,
-                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                        javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE ) )
-                                                        .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                        .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                         .addComponent( jLabel2,
-                                                                                        javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                        javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                        Short.MAX_VALUE )
-                                                                         .addComponent( txtDescription,
-                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                        41,
-                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE ) )
-                                                        .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.UNRELATED )
-                                                        .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                         .addComponent( txtReceiver )
-                                                                         .addComponent( cmbReceiver,
-                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                        javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                         .addComponent( btnChangeReceiver ) )
-                                                        .addGap( 18, 18, 18 )
-                                                        .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                         .addComponent( jLabel3 ).addComponent( txtAddRow ) )
-                                                        .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                        .addComponent( jScrollPane1,
-                                                                       javax.swing.GroupLayout.PREFERRED_SIZE, 226,
-                                                                       javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                        .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.UNRELATED )
-                                                        .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                         .addComponent( btnDelete ).addComponent( btnEdit )
-                                                                         .addComponent( btnSave ) ).addContainerGap(  ) ) );
+        txtAddRow.setText(i18n.msg("add_X",new Object[]{i18n.msg("parameter")}));
+        txtAddRow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtAddRowActionPerformed(evt);
+            }
+        });
 
-        jLabel3.getAccessibleContext(  ).setAccessibleName( "" );
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 590, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2)
+                            .addComponent(txtReceiver))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtDescription, javax.swing.GroupLayout.DEFAULT_SIZE, 483, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(cmbReceiver, 0, 385, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnChangeReceiver))
+                            .addComponent(txtName, javax.swing.GroupLayout.DEFAULT_SIZE, 483, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtAddRow))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnEdit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(btnDelete)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtDescription, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtReceiver)
+                    .addComponent(cmbReceiver, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnChangeReceiver))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(txtAddRow))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnDelete)
+                    .addComponent(btnEdit)
+                    .addComponent(btnSave))
+                .addContainerGap())
+        );
 
-        pack(  );
-    } // </editor-fold>//GEN-END:initComponents
+        jLabel3.getAccessibleContext().setAccessibleName("");
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt)    {//GEN-FIRST:event_btnSaveActionPerformed
 
@@ -314,12 +280,10 @@ public class CustomizeCommand
         int postSize = commandRepository.findAll().size();
 
         if (preSize < postSize) {
-            LOG.info("Command addedd correctly [{} commands]", postSize);
+            LOG.info("Command added correctly [{} commands]", postSize);
         } else {
             LOG.error("Error while adding a command");
         }
-
-//        main.setTargetCommand(c);
         this.dispose();
     }//GEN-LAST:event_btnSaveActionPerformed
 
@@ -345,23 +309,19 @@ public class CustomizeCommand
         } else {
             LOG.error("Error while edit a command");
         }
-
-//        main.setTargetCommand(newCommand);
         this.dispose();
     }//GEN-LAST:event_btnEditActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt)    {//GEN-FIRST:event_btnDeleteActionPerformed
         LOG.info("Trying to remove a command from the list");
         commandRepository.delete(original);
-//        main.updateData();
         this.dispose();
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void txtAddRowActionPerformed(java.awt.event.ActionEvent evt)    {//GEN-FIRST:event_txtAddRowActionPerformed
         model.addRow(new Object[]{"", "", "", ""});
     }//GEN-LAST:event_txtAddRowActionPerformed
-      // Variables declaration - do not modify//GEN-BEGIN:variables
-
+    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnChangeReceiver;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnEdit;
@@ -376,6 +336,5 @@ public class CustomizeCommand
     private javax.swing.JTextField txtDescription;
     private javax.swing.JTextField txtName;
     private javax.swing.JLabel txtReceiver;
-
     // End of variables declaration//GEN-END:variables
 }

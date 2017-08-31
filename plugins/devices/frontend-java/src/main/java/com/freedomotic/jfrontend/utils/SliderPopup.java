@@ -39,11 +39,11 @@ import com.freedomotic.behaviors.RangedIntBehaviorLogic;
  */
 @SuppressWarnings("serial")
 public class SliderPopup extends JPopupMenu implements ActionListener,
-		PropertyChangeListener, MouseListener {
+        PropertyChangeListener, MouseListener {
 
-	private JSlider slider;
-	private RangedIntBehaviorLogic rib;
-	private JFormattedTextField txtValue;
+    private JSlider slider;
+    private transient RangedIntBehaviorLogic rib;
+    private JFormattedTextField txtValue;
 
     /**
      *
@@ -51,71 +51,74 @@ public class SliderPopup extends JPopupMenu implements ActionListener,
      * @param rib
      */
     public SliderPopup(JSlider slider, RangedIntBehaviorLogic rib) {
-		super();
-		this.slider = slider;
-		this.rib = rib;
+        super();
+        this.slider = slider;
+        this.rib = rib;
 
-		txtValue = new JFormattedTextField(NumberFormat.getInstance());
-		txtValue.setColumns(10);
-		txtValue.addActionListener(this);
-		add(txtValue);
-		addPropertyChangeListener("visible", this);
-	}
+        txtValue = new JFormattedTextField(NumberFormat.getInstance());
+        txtValue.setColumns(10);
+        txtValue.addActionListener(this);
+        add(txtValue);
+        addPropertyChangeListener("visible", this);
+    }
 
     /**
      *
      * @param val
      */
     public void setValue(int val) {
-		txtValue.setValue((double) val / rib.getScale());
-	}
+        txtValue.setValue((double) val / rib.getScale());
+    }
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// we got a number, convert to scale
-		int val = (int) (((Number) txtValue.getValue()).doubleValue() * rib
-				.getScale());
-		// set slider value; slider and filterParams will take care of checks
-		slider.setValue(val);
-		setVisible(false);
-	}
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // we got a number, convert to scale
+        int val = (int) (((Number) txtValue.getValue()).doubleValue() * rib
+                .getScale());
+        // set slider value; slider and filterParams will take care of checks
+        slider.setValue(val);
+        setVisible(false);
+    }
 
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		// when it becomes visible, set cursor on the textbox
-		if (evt.getNewValue().equals(true))
-			txtValue.requestFocus();
-	}
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        // when it becomes visible, set cursor on the textbox
+        if (evt.getNewValue().equals(true)) {
+            txtValue.requestFocus();
+        }
+    }
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		checkIfPopup(e);
-	}
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        checkIfPopup(e);
+    }
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		checkIfPopup(e);
-	}
+    @Override
+    public void mousePressed(MouseEvent e) {
+        checkIfPopup(e);
+    }
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		checkIfPopup(e);
-	}
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        checkIfPopup(e);
+    }
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-	}
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        // do nothing
+    }
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-	}
+    @Override
+    public void mouseExited(MouseEvent e) {
+        // do nothing
+    }
 
-	private void checkIfPopup(MouseEvent e) {
-		if (e.isPopupTrigger()) {
-			if (slider.isEnabled()) {
-				setValue(slider.getValue());
-				show(slider, e.getX(), e.getY());
-			}
-		}
-	}
+    private void checkIfPopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            if (slider.isEnabled()) {
+                setValue(slider.getValue());
+                show(slider, e.getX(), e.getY());
+            }
+        }
+    }
 }

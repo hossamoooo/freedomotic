@@ -89,7 +89,7 @@
     <Component class="javax.swing.JButton" name="btnLogin">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="I18n .msg(&quot;login&quot;)" type="code"/>
+          <Connection code="i18n.msg(&quot;login&quot;)" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -99,7 +99,7 @@
     <Component class="javax.swing.JButton" name="btnExit">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="I18n.msg(&quot;exit&quot;)" type="code"/>
+          <Connection code="i18n.msg(&quot;exit&quot;)" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -122,7 +122,7 @@
     <Component class="javax.swing.JLabel" name="loginLbl">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="I18n.msg(&quot;login_msg&quot;)" type="code"/>
+          <Connection code="i18n.msg(&quot;login_msg&quot;)" type="code"/>
         </Property>
       </Properties>
     </Component>

@@ -29,7 +29,6 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-//import java.awt.event.WindowEvent;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.IOException;
@@ -74,6 +73,7 @@ import com.freedomotic.reactions.Command;
 import com.freedomotic.security.Auth;
 import com.freedomotic.settings.Info;
 import com.freedomotic.things.EnvObjectLogic;
+import java.util.List;
 
 /**
  *
@@ -84,15 +84,15 @@ public class MainWindow
 
     private Drawer drawer;
     private static boolean isFullscreen = false;
-    private JavaDesktopFrontend master;
+    private transient JavaDesktopFrontend master;
     private JDesktopPane desktopPane;
     private JInternalFrame frameClient;
     private JInternalFrame frameMap;
     private PluginJList lstClients;
     private boolean editMode;
-    private final Auth Auth;
-    private final API api;
-    private final I18n i18n;
+    private final transient Auth auth;
+    private final transient API api;
+    private final transient I18n i18n;
     private boolean isAuthenticated = false;
     private static final Logger LOG = LoggerFactory.getLogger(JavaDesktopFrontend.class.getName());
 
@@ -115,7 +115,7 @@ public class MainWindow
         UIManager.put("OptionPane.cancelButtonText", i18n.msg("cancel"));
         this.master = master;
         this.api = master.getApi();
-        this.Auth = api.getAuth();
+        this.auth = api.getAuth();
         ObjectEditor.setAPI(api);
 
         setWindowedMode();
@@ -136,17 +136,17 @@ public class MainWindow
     }
 
     private void updateMenusPermissions() {
-        mnuSwitchUser.setEnabled(Auth.isInited());
-        mnuNewEnvironment.setEnabled(Auth.isPermitted("environments:create"));
-        mnuOpenEnvironment.setEnabled(Auth.isPermitted("environments:load"));
-        frameMap.setVisible(Auth.isPermitted("environments:read"));
-        mnuSave.setEnabled(Auth.isPermitted("environments:save"));
-        mnuSaveAs.setEnabled(Auth.isPermitted("environments:save"));
-        mnuRenameEnvironment.setEnabled(Auth.isPermitted("environments:update"));
-        mnuPluginConfigure.setEnabled(Auth.isPermitted("plugins:update"));
-        mnuPluginList.setEnabled(Auth.isPermitted("plugins:read"));
-        frameClient.setVisible(Auth.isPermitted("plugins:read"));
-        mnuPrivileges.setEnabled(Auth.isPermitted("auth:privileges:read") || Auth.isPermitted("auth:privileges:update"));
+        mnuSwitchUser.setEnabled(auth.isInited());
+        mnuNewEnvironment.setEnabled(auth.isPermitted("environments:create"));
+        mnuOpenEnvironment.setEnabled(auth.isPermitted("environments:load"));
+        frameMap.setVisible(auth.isPermitted("environments:read"));
+        mnuSave.setEnabled(auth.isPermitted("environments:save"));
+        mnuSaveAs.setEnabled(auth.isPermitted("environments:save"));
+        mnuRenameEnvironment.setEnabled(auth.isPermitted("environments:update"));
+        mnuPluginConfigure.setEnabled(auth.isPermitted("plugins:update"));
+        mnuPluginList.setEnabled(auth.isPermitted("plugins:read"));
+        frameClient.setVisible(auth.isPermitted("plugins:read"));
+        mnuPrivileges.setEnabled(auth.isPermitted("auth:privileges:read") || auth.isPermitted("auth:privileges:update"));
         mnuSelectEnvironment.setEnabled(master.getApi().environments().findAll().size() > 1);
     }
 
@@ -244,7 +244,7 @@ public class MainWindow
         desktopPane.add(frameMap);
         desktopPane.add(frameClient);
         frameClient.moveToFront();
-        frameClient.setVisible(Auth.isPermitted("plugins:read"));
+        frameClient.setVisible(auth.isPermitted("plugins:read"));
         desktopPane.moveToFront(this);
         this.getContentPane().add(desktopPane);
 
@@ -278,8 +278,8 @@ public class MainWindow
         optimizeFramesDimension();
         drawer.repaint();
         lstClients.update();
-        frameClient.setVisible(Auth.isPermitted("plugins:read"));
-        frameMap.setVisible(Auth.isPermitted("environments:read"));
+        frameClient.setVisible(auth.isPermitted("plugins:read"));
+        frameMap.setVisible(auth.isPermitted("environments:read"));
         setEditMode(false);
         this.setVisible(true);
         isFullscreen = false;
@@ -422,8 +422,6 @@ public class MainWindow
         frameMap.setResizable(true);
         setMapTitle(i18n.msg("not_inited") + i18n.msg("inited"));
         desktopPane.add(frameMap, javax.swing.JLayeredPane.DEFAULT_LAYER);
-//        referenceRatio = new Float(prevEnv.getPojo().getWidth() / new Float(prevEnv.getPojo().getWidth()));
-
     }
 
     /**
@@ -456,9 +454,9 @@ public class MainWindow
     class StringListModel
             extends AbstractListModel {
 
-        private java.util.List<String> list;
+        private List<String> list;
 
-        public StringListModel(ArrayList<String> strings) {
+        public StringListModel(List<String> strings) {
             list = strings;
         }
 
@@ -890,7 +888,7 @@ public class MainWindow
 
     private void submnuHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submnuHelpActionPerformed
 
-        String runningUser = ((Auth.getPrincipal() == null) ? "\n" : i18n.msg("running_as_user") + ": " + Auth.getPrincipal() + "\n");
+        String runningUser = ((auth.getPrincipal() == null) ? "\n" : i18n.msg("running_as_user") + ": " + auth.getPrincipal() + "\n");
         JOptionPane.showMessageDialog(this, ""
                 //+ I18n.msg("running_as_user") + ": " + Auth.getPrincipal() + "\n"
                 + runningUser
@@ -926,11 +924,6 @@ public class MainWindow
         final JFileChooser fc = new JFileChooser(Info.PATHS.PATH_DATA_FOLDER + "/furn/");
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         File file = null;
-        // OpenDialogFileFilter filter = new OpenDialogFileFilter();
-        // filter.addExtension("xenv");
-        // filter.setDescription("Freedomotic XML Environment file");
-        // fc.addChoosableFileFilter(filter);
-        // fc.setFileFilter(filter);
 
         int returnVal = fc.showOpenDialog(this);
 
@@ -1268,7 +1261,7 @@ private void jCheckBoxMarketActionPerformed(java.awt.event.ActionEvent evt) {//G
     }//GEN-LAST:event_mnuTutorialActionPerformed
 
     private void mnuSelectEnvironmentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSelectEnvironmentActionPerformed
-        if (Auth.isPermitted("environments:read")) {
+        if (auth.isPermitted("environments:read")) {
 
             if (api.environments().findAll().size() == 1) {
                 drawer.setCurrEnv(api.environments().findAll().get(0));
@@ -1325,7 +1318,7 @@ private void jCheckBoxMarketActionPerformed(java.awt.event.ActionEvent evt) {//G
         JLabel confirmLbl = new JLabel(i18n.msg("confirm_env_delete"));
         JLabel selectLbl = new JLabel(i18n.msg("select_env_to_reassing_objects"));
 
-        ArrayList<Object> possibilities = new ArrayList<Object>();
+        ArrayList<Object> possibilities = new ArrayList<>();
         possibilities.add(i18n.msg("delete_envobj_alongside_environment"));
         possibilities.addAll(api.environments().findAll());
         possibilities.remove(oldenv);
@@ -1375,7 +1368,7 @@ private void jCheckBoxMarketActionPerformed(java.awt.event.ActionEvent evt) {//G
     private void mnuLanguageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuLanguageActionPerformed
         //JDK 1,7 version: JComboBox<i18n.ComboLanguage> combo = new JComboBox<i18n.ComboLanguage>(I18n.getAvailableLocales());
         //JDK 1.6 version: next line
-        Vector<ComboLanguage> languages = new Vector<ComboLanguage>();
+        Vector<ComboLanguage> languages = new Vector<>();
         for (Locale loc : i18n.getAvailableLocales()) {
             languages.add(new ComboLanguage(loc.getDisplayCountry(i18n.getDefaultLocale()) + " - " + loc.getDisplayLanguage(loc), loc.toString(), loc));
         }

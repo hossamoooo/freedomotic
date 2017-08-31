@@ -85,14 +85,6 @@ public class Callout {
         this.group = "info";
     }
 
-    private String format(String text) {
-        text
-                = text + "\n" + text.substring(text.length() / 2,
-                        text.length());
-
-        return text;
-    }
-
     /**
      *
      * @return

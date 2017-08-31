@@ -33,9 +33,9 @@ import javax.swing.Timer;
  */
 public class SplashLogin extends javax.swing.JFrame {
 
-    private API api;
-    private I18n I18n;
-    private JavaDesktopFrontend master;
+    private transient API api;
+    private transient I18n i18n;
+    private transient JavaDesktopFrontend master;
 
     /**
      *
@@ -44,7 +44,7 @@ public class SplashLogin extends javax.swing.JFrame {
     public SplashLogin(JavaDesktopFrontend jd) {
         this.master = jd;
         this.api = jd.getApi();
-        this.I18n = api.getI18n();
+        this.i18n = api.getI18n();
         initComponents();
         logo.setIcon(new javax.swing.ImageIcon(api.getResource("Freedomotic_noBack.png")));
         // center window on screen
@@ -60,7 +60,6 @@ public class SplashLogin extends javax.swing.JFrame {
 
     }
 
-    @Deprecated
     private void setDefaultLoginData() {
         username.setText("admin");
         password.setText("admin");
@@ -72,19 +71,16 @@ public class SplashLogin extends javax.swing.JFrame {
     public void trySSO() {
         username.setEnabled(false);
         password.setEnabled(false);
-        msgBox.setText(I18n.msg("trying_sso_msg"));
+        msgBox.setText(i18n.msg("trying_sso_msg"));
 
-        ActionListener taskPerformer = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                if (api.getConfig().getBooleanProperty("KEY_ENABLE_SSO", false)
-                        && api.getAuth().bindFakeUser(System.getProperty("user.name"))) {
-                    master.createMainWindow();
-                } else {
-                    msgBox.setText(api.getI18n().msg("login_disclaimer"));
-                    username.setEnabled(true);
-                    password.setEnabled(true);
-                }
+        ActionListener taskPerformer = (ActionEvent evt) -> {
+            if (api.getConfig().getBooleanProperty("KEY_ENABLE_SSO", false)
+                    && api.getAuth().bindFakeUser(System.getProperty("user.name"))) {
+                master.createMainWindow();
+            } else {
+                msgBox.setText(api.getI18n().msg("login_disclaimer"));
+                username.setEnabled(true);
+                password.setEnabled(true);
             }
         };
         Timer doSSO = new Timer(3000, taskPerformer);
@@ -115,14 +111,14 @@ public class SplashLogin extends javax.swing.JFrame {
         setUndecorated(true);
         setResizable(false);
 
-        btnLogin.setText(I18n .msg("login"));
+        btnLogin.setText(i18n.msg("login"));
         btnLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLoginActionPerformed(evt);
             }
         });
 
-        btnExit.setText(I18n.msg("exit"));
+        btnExit.setText(i18n.msg("exit"));
         btnExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnExitActionPerformed(evt);
@@ -138,7 +134,7 @@ public class SplashLogin extends javax.swing.JFrame {
         logo.setToolTipText("");
         logo.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        loginLbl.setText(I18n.msg("login_msg"));
+        loginLbl.setText(i18n.msg("login_msg"));
 
         msgBox.setForeground(new java.awt.Color(255, 0, 0));
 
@@ -215,16 +211,13 @@ public class SplashLogin extends javax.swing.JFrame {
 
             password.setText(null);
             password.setEnabled(false);
-            msgBox.setText(I18n.msg("incorrect_login_msg"));
+            msgBox.setText(i18n.msg("incorrect_login_msg"));
 
-            ActionListener taskPerformer = new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent ae) {
-                    setDefaultLoginData();
-                    msgBox.setText(api.getI18n().msg("login_disclaimer"));
-                    username.setEnabled(true);
-                    password.setEnabled(true);
-                }
+            ActionListener taskPerformer = (ActionEvent ae) -> {
+                setDefaultLoginData();
+                msgBox.setText(api.getI18n().msg("login_disclaimer"));
+                username.setEnabled(true);
+                password.setEnabled(true);
             };
             Timer doWaitForNewLogin = new Timer(4000, taskPerformer);
             doWaitForNewLogin.setRepeats(false);

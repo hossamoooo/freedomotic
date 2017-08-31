@@ -57,11 +57,11 @@ import org.jfree.ui.RectangleInsets;
 public class GraphPanel extends javax.swing.JFrame {
 
     private UsageDataFrame points = new UsageDataFrame();
-    private EnvObjectLogic obj;
+    private transient EnvObjectLogic obj;
     private TimeSeries series;
     private JFreeChart chart;
     private String title;
-    private Protocol master;
+    private transient Protocol master;
 
     /**
      * Creates new form GraphWindow
@@ -84,7 +84,6 @@ public class GraphPanel extends javax.swing.JFrame {
      *
      */
     public final void reDraw() {
-        //  String JSON = obj.getBehavior("data").getValueAsString();
         DataBehaviorLogic dbl = (DataBehaviorLogic) obj.getBehavior("data");
         if (dbl.isChanged()) {
             this.points.setData(dbl.getData());
@@ -298,7 +297,7 @@ public class GraphPanel extends javax.swing.JFrame {
 
         for (UsageData d : points.getData()) {
             Date resultdate = d.getDateTime();
-            Millisecond ms_read = new Millisecond(resultdate);
+            Millisecond msRead = new Millisecond(resultdate);
             int poweredValue = -1;
             if (d.getObjBehavior().equalsIgnoreCase("powered")) {
                 poweredValue = d.getObjValue().equalsIgnoreCase("true") ? 1 : 0;
@@ -309,7 +308,7 @@ public class GraphPanel extends javax.swing.JFrame {
                     poweredValue = -1;
                 }
             }
-            series.addOrUpdate(ms_read, poweredValue);
+            series.addOrUpdate(msRead, poweredValue);
         }
 
         XYDataset xyDataset = new TimeSeriesCollection(series);
@@ -378,9 +377,9 @@ public class GraphPanel extends javax.swing.JFrame {
      */
     public void addDataFromEvent(EventTemplate ev) {
         Date d = new Date(ev.getCreation());
-        Millisecond ms_read = new Millisecond(d);
+        Millisecond msRead = new Millisecond(d);
         int valut = ev.getProperty("object.behavior.powered").equalsIgnoreCase("true") ? 1 : 0;
-        series.addOrUpdate(ms_read, valut);
+        series.addOrUpdate(msRead, valut);
         chart.fireChartChanged();
 
     }

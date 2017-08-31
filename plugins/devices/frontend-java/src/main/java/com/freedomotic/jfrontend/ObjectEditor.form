@@ -25,7 +25,7 @@
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,1,-17,0,0,10,-105"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,1,-17,0,0,10,-101"/>
   </AuxValues>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
@@ -103,7 +103,7 @@
                                   </Group>
                               </Group>
                           </Group>
-                          <EmptySpace pref="2172" max="32767" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -143,7 +143,7 @@
                               <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="txtTags" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace pref="173" max="32767" attributes="0"/>
+                          <EmptySpace pref="145" max="32767" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="btnCreateObjectCopy" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="btnDelete" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -157,7 +157,7 @@
                 <Component class="javax.swing.JLabel" name="jLabel14">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;name&quot;)+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;name&quot;)+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -171,21 +171,21 @@
                 <Component class="javax.swing.JLabel" name="jLabel15">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;description&quot;)+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;description&quot;)+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel1">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;protocol&quot;)+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;protocol&quot;)+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel2">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;address&quot;)+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;address&quot;)+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -197,14 +197,14 @@
                       <Color blue="79" green="79" red="79" type="rgb"/>
                     </Property>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;plugins_more_info&quot;)" type="code"/>
+                      <Connection code="I18n.msg(&quot;plugins_more_info&quot;)" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="btnCreateObjectCopy">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;create_a_copy&quot;)" type="code"/>
+                      <Connection code="I18n.msg(&quot;create_a_copy&quot;)" type="code"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -214,7 +214,7 @@
                 <Component class="javax.swing.JButton" name="btnDelete">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;delete&quot;)+com.freedomotic.util.I18n.msg(&quot;object&quot;)" type="code"/>
+                      <Connection code="I18n.msg(&quot;delete&quot;)+com.freedomotic.util.I18n.msg(&quot;object&quot;)" type="code"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -231,7 +231,7 @@
                 <Component class="javax.swing.JCheckBox" name="btnVirtual">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(this,&quot;is_virtual_object&quot;)" type="code"/>
+                      <Connection code="I18n.msg(&quot;is_virtual_object&quot;)" type="code"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -387,7 +387,7 @@
                               <Component id="environmentComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace pref="211" max="32767" attributes="0"/>
+                          <EmptySpace pref="201" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -396,7 +396,7 @@
                 <Component class="javax.swing.JLabel" name="jLabel11">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;position_X&quot;,new Object[]{&quot;X&quot;})+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;position_X&quot;,new Object[]{&quot;X&quot;})+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -408,7 +408,7 @@
                 <Component class="javax.swing.JLabel" name="jLabel12">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;position_X&quot;,new Object[]{&quot;Y&quot;})+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;position_X&quot;,new Object[]{&quot;Y&quot;})+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -425,14 +425,14 @@
                 <Component class="javax.swing.JLabel" name="jLabel13">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;rotation&quot;)+ &quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;rotation&quot;)+ &quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="chkAllRepresentations">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(this,&quot;apply_changes_all_representations&quot;)" type="code"/>
+                      <Connection code="I18n.msg(&quot;apply_changes_all_representations&quot;)" type="code"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -442,7 +442,7 @@
                 <Component class="javax.swing.JButton" name="btnChangeImage">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;change_X&quot;,new Object[]{com.freedomotic.util.I18n.msg(&quot;image&quot;)})" type="code"/>
+                      <Connection code="I18n.msg(&quot;change_X&quot;,new Object[]{i18n.msg(&quot;image&quot;)})" type="code"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -462,14 +462,14 @@
                 <Component class="javax.swing.JLabel" name="jLabel4">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;width&quot;)+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;width&quot;)+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel5">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;height&quot;)+&quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;height&quot;)+&quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -483,7 +483,7 @@
                 <Component class="javax.swing.JLabel" name="jLabel6">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                      <Connection code="com.freedomotic.util.I18n.msg(&quot;environment&quot;) + &quot;:&quot;" type="code"/>
+                      <Connection code="I18n.msg(&quot;environment&quot;) + &quot;:&quot;" type="code"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -524,7 +524,7 @@
             <Component class="javax.swing.JButton" name="btnOk">
               <Properties>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="com.freedomotic.util.I18n.msg(&quot;ok&quot;)" type="code"/>
+                  <Connection code="I18n.msg(&quot;ok&quot;)" type="code"/>
                 </Property>
               </Properties>
               <Events>
@@ -534,7 +534,7 @@
             <Component class="javax.swing.JButton" name="btnCancel">
               <Properties>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="com.freedomotic.util.I18n.msg(&quot;cancel&quot;)" type="code"/>
+                  <Connection code="I18n.msg(&quot;cancel&quot;)" type="code"/>
                 </Property>
               </Properties>
               <Events>

@@ -40,30 +40,28 @@ public class CustomizeTrigger
         extends javax.swing.JFrame {
 
     private final static Logger LOG = LoggerFactory.getLogger(CustomizeTrigger.class.getName());
-    private Trigger original;
+    private transient Trigger original;
     private DefaultTableModel model = new DefaultTableModel();
     private JTable table;
-    private final I18n I18n;
-    private final TriggerRepository triggerRepository;
+    private transient final I18n i18n;
+    private transient final TriggerRepository triggerRepository;
 
     /**
      * Creates new form CustomizeEvent
      */
     CustomizeTrigger(I18n i18n, Trigger t, TriggerRepository triggerRepository) {
-        this.I18n = i18n;
+        this.i18n = i18n;
         this.triggerRepository = triggerRepository;
         initComponents();
         original = t;
-        this.setTitle(I18n.msg(
-                "trigger_X_editor",
-                new Object[]{t.getName()}));
+        this.setTitle(i18n.msg("trigger_X_editor", new Object[]{t.getName()}));
         txtName.setText(t.getName());
         txtDescription.setText(t.getDescription());
         txtChannel.setText(t.getChannel());
         txtSuspTime.setText(Long.toString(t.getSuspensionTime()));
         txtDelay.setText(Integer.toString(t.getDelay()));
         txtMaxExTimes.setText(Long.toString(t.getMaxExecutions()));
-        lblExplanation.setText(I18n.msg("fire_trigger_msg") + ":");
+        lblExplanation.setText(i18n.msg("fire_trigger_msg") + ":");
 
         if (t.isHardwareLevel() || !t.isToPersist()) {
             btnEdit.setEnabled(false);
@@ -71,10 +69,10 @@ public class CustomizeTrigger
 
         lblTemplateWarning.setVisible(!t.isToPersist());
 
-        model.addColumn(I18n.msg("logical"));
-        model.addColumn(I18n.msg("attribute"));
-        model.addColumn(I18n.msg("operand"));
-        model.addColumn(I18n.msg("value"));
+        model.addColumn(i18n.msg("logical"));
+        model.addColumn(i18n.msg("attribute"));
+        model.addColumn(i18n.msg("operand"));
+        model.addColumn(i18n.msg("value"));
         table = new JTable(model);
         pnlParam.add(table);
 
@@ -88,8 +86,7 @@ public class CustomizeTrigger
             list.add(statement.getAttribute());
             list.add(statement.getOperand());
             list.add(statement.getValue());
-            model.insertRow(row,
-                    list.toArray());
+            model.insertRow(row, list.toArray());
         }
     }
 
@@ -142,223 +139,166 @@ public class CustomizeTrigger
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents(  )
-    {
-        btnSave = new javax.swing.JButton(  );
-        jLabel1 = new javax.swing.JLabel(  );
-        txtName = new javax.swing.JTextField(  );
-        jLabel2 = new javax.swing.JLabel(  );
-        txtDescription = new javax.swing.JTextField(  );
-        lblExplanation = new javax.swing.JLabel(  );
-        btnEdit = new javax.swing.JButton(  );
-        btnDelete = new javax.swing.JButton(  );
-        jScrollPane1 = new javax.swing.JScrollPane(  );
-        pnlParam = new javax.swing.JPanel(  );
-        btnAddRow = new javax.swing.JButton(  );
-        lblTemplateWarning = new javax.swing.JLabel(  );
-        jLabel3 = new javax.swing.JLabel(  );
-        txtChannel = new javax.swing.JTextField(  );
-        txtSuspTime = new javax.swing.JTextField(  );
-        jLabel4 = new javax.swing.JLabel(  );
-        jLabel5 = new javax.swing.JLabel(  );
-        txtDelay = new javax.swing.JTextField(  );
-        txtMaxExTimes = new javax.swing.JTextField(  );
-        jLabel6 = new javax.swing.JLabel(  );
+    private void initComponents() {
 
-        setDefaultCloseOperation( javax.swing.WindowConstants.DISPOSE_ON_CLOSE );
+        btnSave = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        txtName = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        txtDescription = new javax.swing.JTextField();
+        lblExplanation = new javax.swing.JLabel();
+        btnEdit = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        pnlParam = new javax.swing.JPanel();
+        btnAddRow = new javax.swing.JButton();
+        lblTemplateWarning = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        txtChannel = new javax.swing.JTextField();
+        txtSuspTime = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        txtDelay = new javax.swing.JTextField();
+        txtMaxExTimes = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
 
-        btnSave.setText( I18n.msg( "save_as_new" ) + I18n.msg( "trigger" ) );
-        btnSave.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnSaveActionPerformed( evt );
-                }
-            } );
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setText( I18n.msg( "name" ) + ":" );
+        btnSave.setText(i18n.msg("save_as_new")+i18n.msg("trigger"));
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
-        jLabel2.setText( I18n.msg( "description" ) + ":" );
+        jLabel1.setText(i18n.msg("name")+":");
 
-        lblExplanation.setText( I18n.msg( "fire_trigger_if_event_msg" ) + ":" );
+        jLabel2.setText(i18n.msg("description")+":");
 
-        btnEdit.setText( I18n.msg( "save" ) );
-        btnEdit.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnEditActionPerformed( evt );
-                }
-            } );
+        lblExplanation.setText(i18n.msg("fire_trigger_if_event_msg")+":");
 
-        btnDelete.setText( I18n.msg( "delete" ) + I18n.msg( "trigger" ) );
-        btnDelete.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnDeleteActionPerformed( evt );
-                }
-            } );
+        btnEdit.setText(i18n.msg("save"));
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditActionPerformed(evt);
+            }
+        });
 
-        jScrollPane1.setVerticalScrollBarPolicy( javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS );
+        btnDelete.setText(i18n.msg("delete")+i18n.msg("trigger"));
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
-        pnlParam.setLayout( new java.awt.BorderLayout(  ) );
-        jScrollPane1.setViewportView( pnlParam );
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        btnAddRow.setText( I18n.msg( "add_X",
-                                     new Object[] { I18n.msg( "statement" ) } ) );
-        btnAddRow.addActionListener( new java.awt.event.ActionListener(  )
-            {
-                public void actionPerformed( java.awt.event.ActionEvent evt )
-                {
-                    btnAddRowActionPerformed( evt );
-                }
-            } );
+        pnlParam.setLayout(new java.awt.BorderLayout());
+        jScrollPane1.setViewportView(pnlParam);
 
-        lblTemplateWarning.setText( I18n.msg( "trigger_is_template_msg" ) );
+        btnAddRow.setText(i18n.msg("add_X",new Object[]{i18n.msg("statement")}));
+        btnAddRow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddRowActionPerformed(evt);
+            }
+        });
 
-        jLabel3.setText( I18n.msg( "channel" ) + ":" );
+        lblTemplateWarning.setText(i18n.msg("trigger_is_template_msg"));
 
-        jLabel4.setText( I18n.msg( "suspension_time" ) + ":" );
+        jLabel3.setText(i18n.msg("channel")+":");
 
-        jLabel5.setText( I18n.msg( "delay" ) + ":" );
+        jLabel4.setText(i18n.msg("suspension_time")+":");
 
-        jLabel6.setText( I18n.msg( "max_executions" ) + ":" );
+        jLabel5.setText(i18n.msg("delay")+":");
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout( getContentPane(  ) );
-        getContentPane(  ).setLayout( layout );
-        layout.setHorizontalGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                         .addGroup( layout.createSequentialGroup(  ).addContainerGap(  )
-                                                          .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                           .addComponent( jScrollPane1,
-                                                                                          javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                          javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                          Short.MAX_VALUE )
-                                                                           .addComponent( lblTemplateWarning,
-                                                                                          javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                          javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                          Short.MAX_VALUE )
-                                                                           .addGroup( layout.createSequentialGroup(  )
-                                                                                            .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                                                             .addGroup( layout.createSequentialGroup(  )
-                                                                                                                              .addComponent( btnEdit )
-                                                                                                                              .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                              .addComponent( btnSave )
-                                                                                                                              .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                              .addComponent( btnDelete ) )
-                                                                                                             .addGroup( layout.createSequentialGroup(  )
-                                                                                                                              .addComponent( lblExplanation )
-                                                                                                                              .addGap( 18,
-                                                                                                                                       18,
-                                                                                                                                       18 )
-                                                                                                                              .addComponent( btnAddRow ) )
-                                                                                                             .addGroup( layout.createSequentialGroup(  )
-                                                                                                                              .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                                                                                               .addComponent( jLabel1,
-                                                                                                                                                              javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                              103,
-                                                                                                                                                              javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                               .addComponent( jLabel2 )
-                                                                                                                                               .addComponent( jLabel3 )
-                                                                                                                                               .addComponent( jLabel4 )
-                                                                                                                                               .addComponent( jLabel5 )
-                                                                                                                                               .addComponent( jLabel6 ) )
-                                                                                                                              .addGap( 61,
-                                                                                                                                       61,
-                                                                                                                                       61 )
-                                                                                                                              .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING )
-                                                                                                                                               .addComponent( txtMaxExTimes,
-                                                                                                                                                              javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                              353,
-                                                                                                                                                              javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                               .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING,
-                                                                                                                                                                                      false )
-                                                                                                                                                                .addComponent( txtDescription )
-                                                                                                                                                                .addComponent( txtName )
-                                                                                                                                                                .addComponent( txtChannel )
-                                                                                                                                                                .addComponent( txtSuspTime,
-                                                                                                                                                                               javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                                               353,
-                                                                                                                                                                               javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                                                .addComponent( txtDelay,
-                                                                                                                                                                               javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                                               353,
-                                                                                                                                                                               javax.swing.GroupLayout.PREFERRED_SIZE ) ) ) ) )
-                                                                                            .addGap( 0, 257,
-                                                                                                     Short.MAX_VALUE ) ) )
-                                                          .addContainerGap(  ) ) );
-        layout.setVerticalGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.LEADING ).addGroup( 
-                                                                                                                   javax.swing.GroupLayout.Alignment.TRAILING,
-                                                                                                                   layout.createSequentialGroup(  )
-                                                                                                                         .addContainerGap(  )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( jLabel1 )
-                                                                                                                                          .addComponent( txtName,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE ) )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( txtDescription,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                          .addComponent( jLabel2,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         Short.MAX_VALUE ) )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( txtChannel,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                          .addComponent( jLabel3 ) )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( txtSuspTime,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                          .addComponent( jLabel4 ) )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( txtDelay,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                          .addComponent( jLabel5 ) )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( txtMaxExTimes,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                                                                         javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                                          .addComponent( jLabel6 ) )
-                                                                                                                         .addGap( 39,
-                                                                                                                                  39,
-                                                                                                                                  39 )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( lblExplanation )
-                                                                                                                                          .addComponent( btnAddRow ) )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addComponent( jScrollPane1,
-                                                                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                                                                                        361,
-                                                                                                                                        javax.swing.GroupLayout.PREFERRED_SIZE )
-                                                                                                                         .addPreferredGap( javax.swing.LayoutStyle.ComponentPlacement.RELATED )
-                                                                                                                         .addComponent( lblTemplateWarning )
-                                                                                                                         .addGap( 5,
-                                                                                                                                  5,
-                                                                                                                                  5 )
-                                                                                                                         .addGroup( layout.createParallelGroup( javax.swing.GroupLayout.Alignment.BASELINE )
-                                                                                                                                          .addComponent( btnEdit )
-                                                                                                                                          .addComponent( btnSave )
-                                                                                                                                          .addComponent( btnDelete ) )
-                                                                                                                         .addContainerGap(  ) ) );
+        jLabel6.setText(i18n.msg("max_executions")+":");
 
-        pack(  );
-    } // </editor-fold>//GEN-END:initComponents
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblTemplateWarning, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btnEdit)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnSave)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnDelete))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblExplanation)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnAddRow))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel5)
+                                    .addComponent(jLabel6))
+                                .addGap(61, 61, 61)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtMaxExTimes, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(txtDescription)
+                                        .addComponent(txtName)
+                                        .addComponent(txtChannel)
+                                        .addComponent(txtSuspTime, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(txtDelay, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(0, 257, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtDescription, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtSuspTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtDelay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtMaxExTimes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addGap(39, 39, 39)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblExplanation)
+                    .addComponent(btnAddRow))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblTemplateWarning)
+                .addGap(5, 5, 5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnEdit)
+                    .addComponent(btnSave)
+                    .addComponent(btnDelete))
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt)    {//GEN-FIRST:event_btnSaveActionPerformed
 
@@ -395,8 +335,7 @@ public class CustomizeTrigger
     private void btnAddRowActionPerformed(java.awt.event.ActionEvent evt)    {//GEN-FIRST:event_btnAddRowActionPerformed
         addEmptyRow();
     }//GEN-LAST:event_btnAddRowActionPerformed
-      // Variables declaration - do not modify//GEN-BEGIN:variables
-
+    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddRow;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnEdit;
@@ -417,7 +356,6 @@ public class CustomizeTrigger
     private javax.swing.JTextField txtMaxExTimes;
     private javax.swing.JTextField txtName;
     private javax.swing.JTextField txtSuspTime;
-
     // End of variables declaration//GEN-END:variables
     private int getOperatorIndex(String operand) {
         if (operand.equalsIgnoreCase(Statement.EQUALS)) {

@@ -38,7 +38,7 @@ import java.util.Queue;
  */
 public class ImageDrawer extends PlainDrawer {
 
-    private Protocol master;
+    private transient Protocol master;
 
     /**
      *
@@ -94,21 +94,21 @@ public class ImageDrawer extends PlainDrawer {
         }
     }
 
-    private void drawTrace(int[] xTrace, int[] yTrace, Color color) {
+    private void drawImageTrace(int[] xTrace, int[] yTrace, Color color) {
         getContext().setColor(color);
 
-        int num = (int) Math.min(xTrace.length, yTrace.length);
+        int num = Math.min(xTrace.length, yTrace.length);
         getContext().drawPolyline(xTrace, yTrace, num);
     }
 
-    private int[] getXTrace(Queue<FreedomPoint> trace) {
+    private int[] getXImageTrace(Queue<FreedomPoint> trace) {
         int size = trace.size();
         int[] xPoints = new int[size];
         int i = 0;
 
         for (FreedomPoint p : trace) {
             if (i < size) {
-                xPoints[i] = (int) p.getX();
+                xPoints[i] = p.getX();
                 i++;
             }
         }
@@ -116,7 +116,7 @@ public class ImageDrawer extends PlainDrawer {
         return xPoints;
     }
 
-    private int[] getYTrace(Queue<FreedomPoint> trace) {
+    private int[] getYImageTrace(Queue<FreedomPoint> trace) {
         int size = trace.size();
         int[] yPoints = new int[size];
         int i = 0;
@@ -143,7 +143,6 @@ public class ImageDrawer extends PlainDrawer {
                         pol);
 
                 if (zone instanceof Room) {
-                    Room room = (Room) zone;
                     drawRoomObject(pol);
                 }
             }
@@ -175,9 +174,6 @@ public class ImageDrawer extends PlainDrawer {
 
     private void paintObjectDescription(EnvObjectLogic obj) {
         StringBuilder description = new StringBuilder();
-//        if (!obj.getMessage().isEmpty()) {
-//            description.append(obj.getMessage()).append("\n");
-//        }
         description.append(obj.getPojo().getName()).append("\n");
         description.append(obj.getPojo().getDescription()).append("\n");
 
@@ -196,9 +192,6 @@ public class ImageDrawer extends PlainDrawer {
         Callout callout
                 = new Callout(obj.getPojo().getName(), "object.description",
                         description.toString(), x, y, 0.0f, 2000);
-//        if (!obj.getMessage().isEmpty()) {
-//            callout.setColor(Color.red.darker());
-//        }
         createCallout(callout);
         setNeedRepaint(true);
     }
@@ -211,23 +204,5 @@ public class ImageDrawer extends PlainDrawer {
     public void mouseExitsObject(EnvObjectLogic obj) {
         super.mouseExitsObject(obj);
         removeIndicators();
-    }
-
-    /**
-     *
-     * @param obj
-     */
-    @Override
-    public void mouseClickObject(EnvObjectLogic obj) {
-        super.mouseClickObject(obj);
-    }
-
-    /**
-     *
-     * @param obj
-     */
-    @Override
-    public void mouseRightClickObject(EnvObjectLogic obj) {
-        super.mouseRightClickObject(obj);
     }
 }
